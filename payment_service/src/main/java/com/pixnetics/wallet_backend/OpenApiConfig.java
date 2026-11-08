@@ -16,34 +16,22 @@ public class OpenApiConfig {
 
         return new OpenAPI()
                 .info(new Info()
-                        .title("Offline Wallet Platform API")
+                        .title("Hybrid Payment Wallet Platform API")
                         .description("REST API documentation for the Wallet Platform")
                         .version("1.0.0")
                 )
                 .tags(List.of(
                         new Tag()
-                                .name("Platform Management")
-                                .description("Platform administration and merchant registration"),
+                                .name("Client Operations")
+                                .description("Endpoints used by clients to manage their profile, wallets, and funds"),
 
                         new Tag()
-                                .name("Merchant Management")
-                                .description("Merchant management and terminal registration"),
-
-                        new Tag()
-                                .name("Client Management")
-                                .description("Client registration and management"),
-
-                        new Tag()
-                                .name("Wallet Management")
-                                .description("Wallet creation and balance management"),
+                                .name("Merchant Operations")
+                                .description("Endpoints used by merchants to manage their account, terminals, and settlements"),
 
                         new Tag()
                                 .name("Terminal Operations")
-                                .description("Terminal authentication and operations"),
-
-                        new Tag()
-                                .name("Payment Management")
-                                .description("Payment processing and transaction management")
+                                .description("Endpoints used by payment terminals to initiate payment requests")
                 ));
     }
 }

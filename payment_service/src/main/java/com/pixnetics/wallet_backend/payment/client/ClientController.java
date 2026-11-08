@@ -22,26 +22,37 @@ import java.net.URI;
 import java.util.UUID;
 
 @Slf4j
+@Tag(name = "Client Operations")
 @RestController
 @RequestMapping("/api/v1/clients")
 @RequiredArgsConstructor
-@Tag(
-    name = "Client Management",
-    description = "API endpoints for regular clients actions of the app"
-)
 public class ClientController {
 
     private final ClientService clientService;
     private final WalletService walletService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClientResponse> getById(@PathVariable UUID id) {
-        log.info("Get Client by ID: {} Risith 2", id);
+    @Operation(
+            summary = "Get a client by ID",
+            description = "Returns a client account and its associated wallets using the client's unique identifier."
+    )
+    @ApiResponse(responseCode = "200", description = "Client successfully retrieved")
+    public ResponseEntity<ClientResponse> getById(
+            @Parameter(description = "Unique identifier of the client", required = true)
+            @PathVariable UUID id) {
+        log.info("Get Client by ID: {}", id);
         return ResponseEntity.ok(clientService.getById(id));
     }
 
     @GetMapping()
-    public ResponseEntity<ClientResponse> getByUsername(@RequestParam String username) {
+    @Operation(
+            summary = "Get a client by username",
+            description = "Returns a client account and its associated wallets using the client's unique username."
+    )
+    @ApiResponse(responseCode = "200", description = "Client successfully retrieved")
+    public ResponseEntity<ClientResponse> getByUsername(
+            @Parameter(description = "Unique username of the client", required = true, example = "user123")
+            @RequestParam String username) {
         log.info("Get Client by username: {}", username);
         return ResponseEntity.ok(clientService.getByUsername(username));
     }
@@ -49,12 +60,7 @@ public class ClientController {
     @PostMapping
     @Operation(
             summary = "Create a client account",
-            description = """
-                        Registers a new client account on the wallet platform.
-                
-                        - The username must be unique.
-                        - A main wallet is automatically created for the client.
-                        """
+            description = "Registers a new client account on the wallet platform. The username must be unique. A main wallet is automatically created for the client."
     )
     @ApiResponse(responseCode = "201", description = "Client successfully created")
     public ResponseEntity<ClientResponse> createClient(@Valid @RequestBody ClientCreationRequest request) {
@@ -72,7 +78,13 @@ public class ClientController {
     }
 
     @PostMapping("/{id}/wallet")
+    @Operation(
+            summary = "Create a wallet for a client",
+            description = "Creates an additional wallet for an existing client."
+    )
+    @ApiResponse(responseCode = "201", description = "Wallet successfully created")
     public ResponseEntity<WalletResponse> createWallet(
+                                                    @Parameter(description = "Unique identifier of the client", required = true)
                                                     @PathVariable UUID id,
                                                     @Valid @RequestBody WalletCreationRequest request) {
         log.info("Creating a new wallet");

@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Request to register a new client")
 public record ClientCreationRequest(
 
-        @Schema(example = "user123")
+        @Schema(example = "jane123")
         @NotBlank(message = "Username is required")
         @Size(min = 5, max = 20, message = "Username must be between 5 and 20 characters")
         @Pattern(

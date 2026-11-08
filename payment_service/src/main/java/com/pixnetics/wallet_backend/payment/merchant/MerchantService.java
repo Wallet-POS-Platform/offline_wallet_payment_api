@@ -1,5 +1,6 @@
 package com.pixnetics.wallet_backend.payment.merchant;
 
+import com.pixnetics.wallet_backend.enums.UserType;
 import com.pixnetics.wallet_backend.payment.client.Client;
 import com.pixnetics.wallet_backend.payment.client.ClientRepository;
 import com.pixnetics.wallet_backend.payment.merchant.dto.MerchantCreationRequest;
@@ -22,42 +23,44 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MerchantService {
 
-    private final ClientRepository clientRepository;
+    private final MerchantRepository merchantRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public MerchantResponse getById(UUID id) {
         log.info("Creating a new client");
-        Client client = clientRepository.findById(id)
+        Merchant merchant = merchantRepository.findById(id)
                 .orElseThrow(() -> new MerchantNotFoundException(id));
 
         return new MerchantResponse(
-                client.getId(),
-                client.getUser().getUsername()
+                merchant.getId(),
+                merchant.getUser().getUsername()
         );
     }
 
     @Transactional
     public MerchantResponse create(MerchantCreationRequest request){
-        log.info("Creating a new client");
+        log.info("Creating a new merchant");
 
         if(userRepository.existsByUsername(request.username())){
             throw new UsernameAlreadyExistsException(request.username());
         }
 
         User user = new User();
-        user.setType("CLIENT");
+        user.setType(UserType.MERCHANT);
         user.setUsername(request.username());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
 
-        Client client = new Client();
-        client.setUser(user);
-        client.setPublicKey(request.publicKey().getBytes(StandardCharsets.UTF_8));
-        client.setKeyStatus("OK");
-        client.setStatus("OK");
+        Merchant merchant = new Merchant();
+        merchant.setUser(user);
+        merchant.setName(request.businessName());
+        merchant.setCategory(request.category());
+        merchant.setAddress(request.address());
+        merchant.setPayoutIBAN(request.payoutIBAN());
+        merchant.setSettleType(request.settleType());
 
-        Client savedClient = clientRepository.save(client);
+        Merchant savedClient = merchantRepository.save(merchant);
 
         return new MerchantResponse(
                 savedClient.getId(),

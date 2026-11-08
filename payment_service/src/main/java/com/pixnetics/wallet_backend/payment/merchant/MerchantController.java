@@ -5,6 +5,7 @@ import com.pixnetics.wallet_backend.payment.merchant.dto.MerchantResponse;
 import com.pixnetics.wallet_backend.payment.terminal.TerminalService;
 import com.pixnetics.wallet_backend.payment.terminal.dto.TerminalCreationRequest;
 import com.pixnetics.wallet_backend.payment.terminal.dto.TerminalResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import java.net.URI;
 import java.util.UUID;
 
 @Slf4j
+@Tag(name = "Merchant Operations")
 @RestController
 @RequestMapping("/api/v1/merchants")
 @RequiredArgsConstructor
