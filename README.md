@@ -1,24 +1,27 @@
 # Wallet and POS Platform
 
-A backend API for a Hybrid wallet and point-of-sale payment system.
+A backend API for a Hybrid wallet and point-of-sale payment processing system.
 
 Clients keep money in wallets and pay merchants by showing a one-time signed QR code. Merchant terminals scan the code and forward it with order details to the backend. 
 The platform moves the money between wallets on a double-entry ledger. No standard card network is involved. The platform also can be used for any closed network, for example campuses, transport ticketing, or event venues.
 
 ## Status
 
-The system is in the early design phase. Only the Payment Service exists so far. It currently has both related and unrelated endpoints, such as merchant registration. These endpoints will move to other services later, and more services will be added in this same repository.
+The system is in the early design phase. Only the Payment Service exists so far. It currently has both related and unrelated endpoints, such as merchant registration and client sign-up. 
+These endpoints will move to separate services later, and more services will be added in this same repository.
+The main goal is to create a GitHub organization with the mobile app and the web UI in separate repositories. The first code is being built spec by spec. 
 
-The main goal is to create a GitHub organization with the mobile app and the web UI in separate repositories. The first code is being built spec by spec. See the [roadmap](#roadmap).
+[//]: # (See the [roadmap]&#40;#roadmap&#41;.)
+
 ## Main entities (Actors)
 
 ### Client
 
 A client is a person who uses the mobile wallet app.
 
-- The client has one main wallet and can create more sub wallets later.
-- At sign-up, the app creates a key pair. The private key stays in the phone's secure hardware and never leaves it. Only the public key goes to the backend.
-- The app regenerates this key pair periodically, for example weekly. System admins can make pubkey expired.
+- The client has one main wallet created automatically on sign-up and can create more sub wallets later.
+- At sign-up, the app creates a key pair. The private key stays in the phone's secure hardware and never leaves the device. Only the public key sends to the backend.
+- The app regenerates this key pair periodically, for example weekly. System admins can make pubkey expired. In that case app re-generate again.
 - The app then create a one-time signed and encrypted QR code per transaction when tap pay button fully offline.
 - The app needs a connection only for top-up, withdrawal, syncing balance, transaction history, and account details. Otherwise it shows the last known balance when offline.
 - Peer to peer money sharing is also possible.
@@ -52,6 +55,8 @@ A provider is a regulated bank or e-money company that maintains the pool accoun
 - Each provider's pool account is mirrored by one clearing wallet in the ledger.
 
 ## Architecture
+
+Architecture Diagram is still in early design stage.
 
 ![Architecture](docs/images/architecture.png)
 
@@ -135,16 +140,16 @@ The client spent 6.90, of which 1.10 is VAT. The merchant received 6.90, of whic
 
 ## Tech stack
 
-| Area | Choice | Why |
-|---|---|---|
+| Area | Choice | Reason                                                                                                |
+|---|---|-------------------------------------------------------------------------------------------------------|
 | Language | Java, Spring Boot | Common in fintech. `BigDecimal` gives exact decimal arithmetic. `@Transactional` gives atomic writes. |
-| Database | PostgreSQL 18, Flyway | Strict ACID guarantees. Open source. |
-| Ledger | Custom tables in PostgreSQL | Append-only. A dedicated ledger engine is a later option at high volume. |
-| Cache | Redis | Fast lookup of used nonces. |
-| Messaging | RabbitMQ | Lightweight. Integrates well with Spring. |
-| Deployment | Docker, Docker Swarm, EU-based VPS | Simpler than Kubernetes. Keeps data in the EU. |
-| CI/CD | GitLab | |
-| Observability | Prometheus, Grafana | Self-hosted. Metrics stay inside the organization. |
+| Database | PostgreSQL 18, Flyway | Strict ACID guarantees. Open source. Flyway for easy migration                                        |
+| Ledger | Custom tables in PostgreSQL | Append-only. A dedicated ledger engine is a later option.                                             |
+| Cache | Redis | Fast lookup of used nonces.                                                                           |
+| Messaging | RabbitMQ | Lightweight. Integrates well with Spring.                                                             |
+| Deployment | Docker, Docker Swarm, EU-based VPS | Simpler than Kubernetes. Keeps data in the EU.                                                        |
+| CI/CD | GitLab |                                                                                                       |
+| Observability | Prometheus, Grafana | Self-hosted. Metrics stay inside the company.                                                         |
 
 ## Documentation
 
@@ -163,15 +168,23 @@ The client spent 6.90, of which 1.10 is VAT. The merchant received 6.90, of whic
 
 This project uses spec-driven development. Each change starts as a markdown spec in `specs/`. The spec lists requirements, edge cases, and acceptance criteria. The code is written to match it. [AGENTS.md](AGENTS.md) describes the full workflow.
 
-## Roadmap
+[//]: # (## Roadmap)
 
-- [ ] Project skeleton with Flyway migrations
-- [ ] Ledger mechanics and the VAT example, with tests
-- [ ] `POST /pos/payments` with a concurrency test
-- [ ] QR token layer: signature, encryption, nonce
-- [ ] Top-up and withdrawal against a mock provider
-- [ ] Settlement and reconciliation
+[//]: # ()
+[//]: # (- [ ] Project skeleton with Flyway migrations)
 
-## Getting started
+[//]: # (- [ ] Ledger mechanics and the VAT example, with tests)
 
-The skeleton is not in place yet. The setup steps will be added with the first spec.
+[//]: # (- [ ] `POST /pos/payments` with a concurrency test)
+
+[//]: # (- [ ] QR token layer: signature, encryption, nonce)
+
+[//]: # (- [ ] Top-up and withdrawal against a mock provider)
+
+[//]: # (- [ ] Settlement and reconciliation)
+
+[//]: # ()
+[//]: # (## Getting started)
+
+[//]: # ()
+[//]: # (The skeleton is not in place yet. The setup steps will be added with the first spec.)
