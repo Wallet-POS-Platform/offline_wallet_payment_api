@@ -31,6 +31,9 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "status", nullable = false)
+    private String status;
+
     @OneToMany
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private List<Wallet> wallets;

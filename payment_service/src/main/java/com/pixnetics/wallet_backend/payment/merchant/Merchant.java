@@ -33,9 +33,6 @@ public class Merchant {
     @Column(name = "payout_iban")
     private String payoutIBAN;
 
-    @Column(name = "status", nullable = false)
-    private String status;
-
     @Column(name = "settle_type", nullable = false)
     private String settleType;
 }

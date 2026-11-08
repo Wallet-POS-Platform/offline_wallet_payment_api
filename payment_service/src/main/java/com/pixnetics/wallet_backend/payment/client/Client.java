@@ -26,7 +26,4 @@ public class Client {
 
     @Column(name = "key_status", nullable = false)
     private String keyStatus;
-
-    @Column(name = "status", nullable = false)
-    private String status;
 }
