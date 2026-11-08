@@ -26,6 +26,28 @@ public record ClientCreationRequest(
         )
         String password,
 
+        @Schema(example = "Jane")
+        @NotBlank(message = "First name is required")
+        String firstName,
+
+        @Schema(example = "Doe")
+        @NotBlank(message = "Last name is required")
+        String lastName,
+
+        @Schema(example = "123 Main Street")
+        String address,
+
+        @Schema(example = "+491234567890")
+        String phoneNumber,
+
+        @Schema(example = "DE")
+        @NotBlank(message = "Country is required")
+        @Pattern(
+                regexp = "^[A-Z]{2}$",
+                message = "Country must be a two-letter ISO 3166-1 alpha-2 code"
+        )
+        String countryCode,
+
         @Schema(example = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCV9YPeqeKETHDebglg+Y4fj2RI")
         @NotBlank(message = "Public key is required")
         @Size(max = 4096, message = "Public key is too long")
