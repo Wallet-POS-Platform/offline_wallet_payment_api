@@ -1,5 +1,6 @@
 package com.pixnetics.wallet_backend.payment.user;
 
+import com.pixnetics.wallet_backend.enums.UserType;
 import com.pixnetics.wallet_backend.payment.wallet.Wallet;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -22,8 +23,9 @@ public class User {
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private Instant createdAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
-    private String type;
+    private UserType type;
 
     @Column(name = "username", nullable = false, unique = true)
     private String username;
@@ -31,8 +33,8 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "status", nullable = false)
-    private String status;
+    @Column(name = "is_active")
+    private boolean isActive;
 
     @OneToMany
     @JoinColumn(name = "user_id", referencedColumnName = "id")

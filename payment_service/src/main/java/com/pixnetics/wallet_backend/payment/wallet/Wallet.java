@@ -36,6 +36,6 @@ public class Wallet {
     @Column(name = "balance", nullable = false, precision = 10, scale = 2)
     private BigDecimal balance = BigDecimal.ZERO;
 
-    @Column(name = "status", nullable = false)
-    private String status;
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive;
 }

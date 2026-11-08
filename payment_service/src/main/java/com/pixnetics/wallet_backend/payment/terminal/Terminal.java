@@ -18,6 +18,12 @@ public class Terminal {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
+    private Instant updatedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "merchant_id", nullable = false)
     private Merchant merchant;
@@ -25,15 +31,12 @@ public class Terminal {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "cert_serial_number", nullable = false, unique = true)
-    private String certificateSerialNumber;
+    @Column(name = "cert_id", nullable = false, unique = true)
+    private String certId;
 
-    @Column(name = "status", nullable = false)
-    private String status;
+    @Column(name = "is_cert_active", nullable = false)
+    private boolean isCertActive;
 
-    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
-    private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
-    private Instant updatedAt;
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive;
 }

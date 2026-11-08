@@ -1,5 +1,6 @@
 package com.pixnetics.wallet_backend.payment.transaction;
 
+import com.pixnetics.wallet_backend.enums.TransactionStatus;
 import com.pixnetics.wallet_backend.payment.wallet.Wallet;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -26,8 +27,9 @@ public class Transaction {
     @Column(name = "type", nullable = false)
     private String type;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status = "pending";
+    private TransactionStatus status;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "from_wallet_id", referencedColumnName = "id")

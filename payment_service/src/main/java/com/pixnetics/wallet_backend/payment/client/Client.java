@@ -21,9 +21,24 @@ public class Client {
     @JoinColumn(name = "id")
     private User user;
 
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
+
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @Column(name = "country", nullable = false)
+    private String country;
+
     @Column(name = "public_key", nullable = false, unique = true)
     private byte[] publicKey;
 
-    @Column(name = "key_status", nullable = false)
-    private String keyStatus;
+    @Column(name = "is_public_key_active", nullable = false)
+    private boolean isPublicKeyActive;
 }
