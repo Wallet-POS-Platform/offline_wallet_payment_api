@@ -44,11 +44,13 @@ CREATE TABLE "wallets" (
     id          uuid          PRIMARY KEY,
     created_at  timestamptz   NOT NULL DEFAULT now(),
     user_id     uuid          REFERENCES users (id),
-    wallet_type text          NOT NULL,
+    type        text          NOT NULL,
     name        text          NOT NULL,
     currency    text          NOT NULL DEFAULT 'EUR',
     balance     numeric(10,2) NOT NULL DEFAULT 0,
-    is_active   boolean       NOT NULL DEFAULT TRUE
+    is_active   boolean       NOT NULL DEFAULT TRUE,
+
+    CONSTRAINT chk_wallet_type CHECK (type IN ('MAIN', 'SUB'))
 );
 
 CREATE TABLE "transactions" (

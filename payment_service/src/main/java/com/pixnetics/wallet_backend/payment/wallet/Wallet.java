@@ -1,5 +1,6 @@
 package com.pixnetics.wallet_backend.payment.wallet;
 
+import com.pixnetics.wallet_backend.enums.WalletType;
 import com.pixnetics.wallet_backend.payment.user.User;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -24,8 +25,9 @@ public class Wallet {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "wallet_type", nullable = false)
-    private String walletType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private WalletType walletType;
 
     @Column(name = "name", nullable = false)
     private String name;

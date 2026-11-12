@@ -20,5 +20,8 @@ public record WalletResponse(
         BigDecimal balance,
 
         @Schema(example = "EUR")
-        String currency
+        String currency,
+
+        @Schema(example = "true")
+        boolean isActive
 ) {}

@@ -3,6 +3,7 @@ package com.pixnetics.wallet_backend;
 import com.pixnetics.wallet_backend.payment.client.exception.ClientNotFoundException;
 import com.pixnetics.wallet_backend.payment.merchant.exception.MerchantNotFoundException;
 import com.pixnetics.wallet_backend.payment.user.exception.UsernameAlreadyExistsException;
+import com.pixnetics.wallet_backend.payment.wallet.exception.WalletException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -38,6 +39,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UsernameAlreadyExistsException.class)
     public ProblemDetail handleException(UsernameAlreadyExistsException e) {
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                e.getMessage()
+        );
+    }
+
+    @ExceptionHandler(WalletException.class)
+    public ProblemDetail handleException(WalletException e) {
         return ProblemDetail.forStatusAndDetail(
                 HttpStatus.CONFLICT,
                 e.getMessage()
