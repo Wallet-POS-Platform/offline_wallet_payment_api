@@ -1,6 +1,6 @@
 package com.pixnetics.wallet_backend.payment.user;
 
-import com.pixnetics.wallet_backend.enums.UserType;
+import com.pixnetics.wallet_backend.enums.UserRole;
 import com.pixnetics.wallet_backend.payment.wallet.Wallet;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -24,8 +24,8 @@ public class User {
     private Instant createdAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    private UserType type;
+    @Column(name = "role", nullable = false)
+    private UserRole role;
 
     @Column(name = "username", nullable = false, unique = true)
     private String username;

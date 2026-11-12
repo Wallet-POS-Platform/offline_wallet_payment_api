@@ -1,6 +1,7 @@
 package com.pixnetics.wallet_backend.payment.client;
 
-import com.pixnetics.wallet_backend.enums.UserType;
+import com.pixnetics.wallet_backend.enums.UserRole;
+import com.pixnetics.wallet_backend.enums.WalletType;
 import com.pixnetics.wallet_backend.payment.client.dto.ClientCreationRequest;
 import com.pixnetics.wallet_backend.payment.client.dto.ClientResponse;
 import com.pixnetics.wallet_backend.payment.client.exception.ClientNotFoundException;
@@ -33,7 +34,7 @@ public class ClientService {
     public ClientResponse getById(UUID id) {
         log.info("Getting a new client");
 
-        Client client = clientRepository.findById(id)
+        Client client = clientRepository.findClientById(id)
                 .orElseThrow(() -> new ClientNotFoundException(id));
 
         List<WalletResponse> wallets = client.getUser().getWallets().stream()
@@ -73,7 +74,7 @@ public class ClientService {
         log.info("Username is not exists check passed");
 
         User user = new User();
-        user.setType(UserType.CLIENT);
+        user.setRole(UserRole.CLIENT);
         user.setUsername(request.username());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
 
@@ -89,9 +90,9 @@ public class ClientService {
         Client savedClient = clientRepository.save(client);
         log.info("Client record created");
 
-        WalletCreationRequest initialWalletRequest = new WalletCreationRequest("MAIN", "Main", "EUR");
+        WalletCreationRequest initialWalletRequest = new WalletCreationRequest("Main", "EUR");
 
-        WalletResponse initialWallet = walletService.createWallet(savedClient.getUser(), initialWalletRequest);
+        WalletResponse initialWallet = walletService.createWallet(savedClient.getUser(), initialWalletRequest, WalletType.MAIN);
         log.info("Client main wallet created");
 
         return new ClientResponse(

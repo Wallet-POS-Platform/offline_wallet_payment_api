@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -97,6 +98,20 @@ public class ClientController {
                 .toUri();
 
         return ResponseEntity.created(location).body(response);
+    }
+
+    @GetMapping("/{id}/wallets")
+    @Operation(
+            summary = "Get all the wallets of a given user",
+            description = "Creates an additional wallet for an existing client."
+    )
+    @ApiResponse(responseCode = "201", description = "Wallet successfully created")
+    public ResponseEntity<List<WalletResponse>> getAllWallet(
+            @Parameter(description = "Unique identifier of the client", required = true)
+            @PathVariable UUID id) {
+
+        log.info("Getting all wallets");
+        return ResponseEntity.ok(walletService.getWalletsByUserId(id));
     }
 
     @PostMapping("/topup")
