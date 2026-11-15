@@ -54,14 +54,22 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(WalletException.class)
-    public ProblemDetail handleException(WalletException e) {
+    @ExceptionHandler(WalletCreationException.class)
+    public ProblemDetail handleException(WalletCreationException e) {
         return ProblemDetail.forStatusAndDetail(
                 HttpStatus.CONFLICT,
                 e.getMessage()
         );
     }
 
+    @ExceptionHandler(WalletNotFoundException.class)
+    public ProblemDetail handleException(WalletNotFoundException e) {
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                e.getMessage()
+        );
+    }
+    
     // --------------------- In Built Exceptions -----------------------//
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleException(MethodArgumentNotValidException e) {

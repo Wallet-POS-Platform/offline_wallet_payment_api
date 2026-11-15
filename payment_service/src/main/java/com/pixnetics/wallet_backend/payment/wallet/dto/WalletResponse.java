@@ -23,5 +23,5 @@ public record WalletResponse(
         String currency,
 
         @Schema(example = "true")
-        boolean isActive
+        Boolean isActive
 ) {}

@@ -7,7 +7,8 @@ import com.pixnetics.wallet_backend.payment.user.User;
 import com.pixnetics.wallet_backend.payment.user.UserRepository;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletCreationRequest;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletResponse;
-import com.pixnetics.wallet_backend.payment.wallet.exception.WalletException;
+import com.pixnetics.wallet_backend.payment.wallet.exception.WalletCreationException;
+import com.pixnetics.wallet_backend.payment.wallet.exception.WalletNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,22 +26,24 @@ public class WalletService {
     private final UserRepository userRepository;
 
     @Transactional
-    public WalletResponse create(UUID userId, WalletCreationRequest request) {
+    public WalletResponse createWalletForClient(UUID userId, WalletCreationRequest request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ClientNotFoundException(userId));
 
-        if (UserRole.CLIENT.equals(user.getRole())) {
-            return this.createWallet(user, request, WalletType.SUB);
+        if(!UserRole.CLIENT.equals(user.getRole())){
+            throw new WalletCreationException("Wallet Creation not allowed for: " + user.getRole());
         }
 
-        throw new WalletException(user.getId().toString());
+        boolean isActiveWalletExits = walletRepository.existsActiveWalletByUserId(userId);
+
+        return this.createWallet(request.name(), user, isActiveWalletExits ? WalletType.SUB : WalletType.MAIN, request.currency());
     }
 
-    public WalletResponse createWallet(User user, WalletCreationRequest request, WalletType type) {
+    public WalletResponse createWallet(String walletName, User user, WalletType type, String currency) {
         Wallet wallet = new Wallet();
         wallet.setUser(user);
         wallet.setWalletType(type);
-        wallet.setName(request.name());
-        wallet.setCurrency(request.currency());
+        wallet.setName(walletName);
+        wallet.setCurrency(currency);
         wallet.setBalance(BigDecimal.ZERO);
 
         Wallet saved = walletRepository.save(wallet);
@@ -49,17 +52,11 @@ public class WalletService {
     }
 
     @Transactional(readOnly = true)
-    public List<WalletResponse> getWalletsByUserId(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ClientNotFoundException(userId));
-
-        if (UserRole.CLIENT.equals(user.getRole()) || UserRole.MERCHANT.equals(user.getRole())) {
-            return walletRepository.findAllByUser_Id(userId)
-                    .stream()
-                    .map(this::toResponse)
-                    .toList();
-        }
-
-        throw new WalletException(user.getId().toString());
+    public List<WalletResponse> getClientWalletsById(UUID userId) {
+        return walletRepository.findAllWalletsByClientId(userId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
