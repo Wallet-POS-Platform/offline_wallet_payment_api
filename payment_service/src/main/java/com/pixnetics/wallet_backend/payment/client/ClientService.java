@@ -32,7 +32,7 @@ public class ClientService {
 
     @Transactional(readOnly = true)
     public ClientResponse getById(UUID id) {
-        log.info("Getting the client by id: {}", id);
+        log.info("Getting client by ID: {}", id);
 
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException(id));
@@ -48,7 +48,7 @@ public class ClientService {
 
     @Transactional(readOnly = true)
     public ClientResponse getByUsername(String username) {
-        log.info("Getting the client by username: {}", username);
+        log.info("Getting client by username");
 
         User client = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ClientNotFoundException(username));
@@ -64,16 +64,20 @@ public class ClientService {
 
     @Transactional
     public ClientResponse create(ClientCreationRequest request){
+        log.info("Creating client account");
+
         if(userRepository.existsByUsername(request.username())){
+            log.warn("Client account creation rejected: username already exists");
             throw new UsernameAlreadyExistsException(request.username());
         }
-        log.info("Username is not exists check passed");
+        log.debug("Client username is available");
 
         byte[] publicKey = request.publicKey().getBytes(StandardCharsets.UTF_8);
         if (clientRepository.existsByPublicKey(publicKey)) {
+            log.warn("Client account creation rejected: public key is already registered");
             throw new PublicKeyAlreadyRegisteredException("This public key cannot be accepted");
         }
-        log.info("Given public key accepted");
+        log.debug("Client public key is available");
 
         User user = new User();
         user.setRole(UserRole.CLIENT);
@@ -90,10 +94,10 @@ public class ClientService {
         client.setPublicKey(publicKey);
 
         Client savedClient = clientRepository.save(client);
-        log.info("Client record created");
+        log.info("Client account created: {}", savedClient.getId());
 
         WalletResponse initialWallet = walletService.createWallet("Main", savedClient.getUser(), WalletType.MAIN, request.currency());
-        log.info("Client main wallet created");
+        log.info("Client main wallet created: clientId={}, walletId={}", savedClient.getId(), initialWallet.id());
 
         return new ClientResponse(
                 savedClient.getId(),

@@ -30,24 +30,23 @@ public class MerchantService {
 
     @Transactional(readOnly = true)
     public MerchantResponse getById(UUID id) {
-        log.info("Creating a new client");
+        log.info("Getting merchant by ID: {}", id);
+
         Merchant merchant = merchantRepository.findById(id)
                 .orElseThrow(() -> new MerchantNotFoundException(id));
 
-        return new MerchantResponse(
-                merchant.getId(),
-                merchant.getUser().getUsername(),
-                walletService.getMerchantWalletById(merchant.getId())
-        );
+        return toResponse(merchant, walletService.getMerchantWalletById(merchant.getId()));
     }
 
     @Transactional
     public MerchantResponse create(MerchantCreationRequest request){
-        log.info("Creating a new merchant");
+        log.info("Creating merchant account");
 
         if(userRepository.existsByUsername(request.username())){
+            log.warn("Merchant account creation rejected: username already exists");
             throw new UsernameAlreadyExistsException(request.username());
         }
+        log.debug("Merchant username is available");
 
         User user = new User();
         user.setRole(UserRole.MERCHANT);
@@ -64,15 +63,24 @@ public class MerchantService {
         merchant.setSettleType(request.settleType());
 
         Merchant savedMerchant = merchantRepository.save(merchant);
-        log.info("Merchant record created");
+        log.info("Merchant account created: {}", savedMerchant.getId());
 
         WalletResponse initialWallet = walletService.createWallet("Main", savedMerchant.getUser(), WalletType.MAIN, request.currency());
-        log.info("Merchant wallet created");
+        log.info("Merchant main wallet created: merchantId={}, walletId={}", savedMerchant.getId(), initialWallet.id());
 
+        return toResponse(savedMerchant, initialWallet);
+    }
+
+    private MerchantResponse toResponse(Merchant merchant, WalletResponse mainWallet) {
         return new MerchantResponse(
-                savedMerchant.getId(),
-                savedMerchant.getUser().getUsername(),
-                initialWallet
+                merchant.getId(),
+                merchant.getUser().getUsername(),
+                merchant.getName(),
+                merchant.getCategory(),
+                merchant.getAddress(),
+                merchant.getCountry(),
+                merchant.getSettleType(),
+                mainWallet
         );
     }
 }
