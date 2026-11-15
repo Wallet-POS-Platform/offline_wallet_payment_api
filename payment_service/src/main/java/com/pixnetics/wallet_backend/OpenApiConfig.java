@@ -21,17 +21,21 @@ public class OpenApiConfig {
                         .version("1.0.0")
                 )
                 .tags(List.of(
-                        new Tag()
-                                .name("Client Operations")
-                                .description("Endpoints used by clients to manage their profile, wallets, and funds"),
+                    new Tag()
+                            .name("Client Operations")
+                            .description("Endpoints used by clients to manage their profile, wallets, and funds"),
 
-                        new Tag()
-                                .name("Merchant Operations")
-                                .description("Endpoints used by merchants to manage their account, terminals, and settlements"),
+                    new Tag()
+                            .name("Merchant Operations")
+                            .description("Endpoints used by merchants to manage their account, terminals, and settlements"),
 
-                        new Tag()
-                                .name("Terminal Operations")
-                                .description("Endpoints used by payment terminals to initiate payment requests")
+                    new Tag()
+                            .name("Terminal Operations")
+                            .description("Endpoints used by payment terminals to initiate payment requests"),
+
+                    new Tag()
+                            .name("Admin Operations")
+                            .description("Endpoints used by system officers and admins")
                 ));
     }
 }

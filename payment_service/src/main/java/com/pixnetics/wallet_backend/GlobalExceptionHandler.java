@@ -4,7 +4,8 @@ import com.pixnetics.wallet_backend.payment.client.exception.ClientNotFoundExcep
 import com.pixnetics.wallet_backend.payment.client.exception.PublicKeyAlreadyRegisteredException;
 import com.pixnetics.wallet_backend.payment.merchant.exception.MerchantNotFoundException;
 import com.pixnetics.wallet_backend.payment.user.exception.UsernameAlreadyExistsException;
-import com.pixnetics.wallet_backend.payment.wallet.exception.WalletException;
+import com.pixnetics.wallet_backend.payment.wallet.exception.WalletCreationException;
+import com.pixnetics.wallet_backend.payment.wallet.exception.WalletNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
