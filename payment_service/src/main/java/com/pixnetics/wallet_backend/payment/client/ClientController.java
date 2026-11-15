@@ -8,10 +8,8 @@ import com.pixnetics.wallet_backend.payment.wallet.dto.WalletResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -111,7 +109,7 @@ public class ClientController {
             @PathVariable UUID id) {
 
         log.info("Getting all wallets");
-        return ResponseEntity.ok(walletService.getWalletsByUserId(id));
+        return ResponseEntity.ok(walletService.getClientWalletsById(id));
     }
 
     @PostMapping("/topup")

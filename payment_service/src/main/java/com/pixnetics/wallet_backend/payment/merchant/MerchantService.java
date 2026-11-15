@@ -1,21 +1,21 @@
 package com.pixnetics.wallet_backend.payment.merchant;
 
-import com.pixnetics.wallet_backend.enums.UserType;
-import com.pixnetics.wallet_backend.payment.client.Client;
-import com.pixnetics.wallet_backend.payment.client.ClientRepository;
+import com.pixnetics.wallet_backend.enums.UserRole;
+import com.pixnetics.wallet_backend.enums.WalletType;
 import com.pixnetics.wallet_backend.payment.merchant.dto.MerchantCreationRequest;
 import com.pixnetics.wallet_backend.payment.merchant.dto.MerchantResponse;
 import com.pixnetics.wallet_backend.payment.merchant.exception.MerchantNotFoundException;
 import com.pixnetics.wallet_backend.payment.user.User;
 import com.pixnetics.wallet_backend.payment.user.UserRepository;
 import com.pixnetics.wallet_backend.payment.user.exception.UsernameAlreadyExistsException;
+import com.pixnetics.wallet_backend.payment.wallet.WalletService;
+import com.pixnetics.wallet_backend.payment.wallet.dto.WalletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Slf4j
@@ -26,6 +26,7 @@ public class MerchantService {
     private final MerchantRepository merchantRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final WalletService walletService;
 
     @Transactional(readOnly = true)
     public MerchantResponse getById(UUID id) {
@@ -35,7 +36,8 @@ public class MerchantService {
 
         return new MerchantResponse(
                 merchant.getId(),
-                merchant.getUser().getUsername()
+                merchant.getUser().getUsername(),
+                walletService.getMerchantWalletById(merchant.getId())
         );
     }
 
@@ -48,7 +50,7 @@ public class MerchantService {
         }
 
         User user = new User();
-        user.setType(UserType.MERCHANT);
+        user.setRole(UserRole.MERCHANT);
         user.setUsername(request.username());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
 
@@ -57,14 +59,20 @@ public class MerchantService {
         merchant.setName(request.businessName());
         merchant.setCategory(request.category());
         merchant.setAddress(request.address());
+        merchant.setCountry(request.countryCode());
         merchant.setPayoutIBAN(request.payoutIBAN());
         merchant.setSettleType(request.settleType());
 
-        Merchant savedClient = merchantRepository.save(merchant);
+        Merchant savedMerchant = merchantRepository.save(merchant);
+        log.info("Merchant record created");
+
+        WalletResponse initialWallet = walletService.createWallet("Main", savedMerchant.getUser(), WalletType.MAIN, request.currency());
+        log.info("Merchant wallet created");
 
         return new MerchantResponse(
-                savedClient.getId(),
-                savedClient.getUser().getUsername()
+                savedMerchant.getId(),
+                savedMerchant.getUser().getUsername(),
+                initialWallet
         );
     }
 }

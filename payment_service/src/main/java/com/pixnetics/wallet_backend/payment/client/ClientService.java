@@ -10,7 +10,6 @@ import com.pixnetics.wallet_backend.payment.user.User;
 import com.pixnetics.wallet_backend.payment.user.UserRepository;
 import com.pixnetics.wallet_backend.payment.user.exception.UsernameAlreadyExistsException;
 import com.pixnetics.wallet_backend.payment.wallet.WalletService;
-import com.pixnetics.wallet_backend.payment.wallet.dto.WalletCreationRequest;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,14 +32,12 @@ public class ClientService {
 
     @Transactional(readOnly = true)
     public ClientResponse getById(UUID id) {
-        log.info("Getting a new client");
+        log.info("Getting the client by id: {}", id);
 
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException(id));
 
-        List<WalletResponse> wallets = client.getUser().getWallets().stream()
-                .map(walletService::toResponse)
-                .toList();
+        List<WalletResponse> wallets = walletService.getClientWalletsById(client.getId());
 
         return new ClientResponse(
             client.getId(),
@@ -51,14 +48,12 @@ public class ClientService {
 
     @Transactional(readOnly = true)
     public ClientResponse getByUsername(String username) {
-        log.info("Getting a new client");
+        log.info("Getting the client by username: {}", username);
 
         User client = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ClientNotFoundException(username));
 
-        List<WalletResponse> wallets = client.getWallets().stream()
-                .map(walletService::toResponse)
-                .toList();
+        List<WalletResponse> wallets = walletService.getClientWalletsById(client.getId());
 
         return new ClientResponse(
                 client.getId(),

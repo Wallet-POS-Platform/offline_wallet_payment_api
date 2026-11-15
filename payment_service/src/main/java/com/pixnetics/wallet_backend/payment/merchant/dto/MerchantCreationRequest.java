@@ -37,6 +37,14 @@ public record MerchantCreationRequest(
         @Schema(example = "123 Main Street")
         String address,
 
+        @Schema(example = "DE")
+        @NotBlank(message = "Country is required")
+        @Pattern(
+                regexp = "^[A-Z]{2}$",
+                message = "Country must be a two-letter ISO 3166-1 alpha-2 code"
+        )
+        String countryCode,
+
         @Schema(example = "DE89370400440532013000")
         @Pattern(
                 regexp = "^[A-Z]{2}\\d{2}[A-Z0-9]{11,30}$",
@@ -46,5 +54,9 @@ public record MerchantCreationRequest(
 
         @Schema(example = "MONTHLY")
         @NotBlank(message = "Settlement type is required")
-        String settleType
+        String settleType,
+
+        @Schema(example = "EUR")
+        @NotBlank(message = "Wallet Currency")
+        String currency
 ) {}

@@ -35,7 +35,4 @@ public class User {
 
     @Column(name = "is_active")
     private boolean isActive = true;
-
-    @OneToMany(mappedBy = "user")
-    private List<Wallet> wallets;
 }

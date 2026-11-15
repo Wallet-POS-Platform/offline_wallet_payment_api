@@ -25,6 +25,7 @@ CREATE TABLE "merchants" (
     name        text NOT NULL,
     category    text,
     address     text,
+    country     text NOT NULL,
     payout_iban text,
     settle_type text NOT NULL
 );

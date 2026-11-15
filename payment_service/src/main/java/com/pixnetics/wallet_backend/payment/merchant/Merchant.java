@@ -30,6 +30,9 @@ public class Merchant {
     @Column(name = "address")
     private String address;
 
+    @Column(name = "country", nullable = false)
+    private String country;
+
     @Column(name = "payout_iban")
     private String payoutIBAN;
 

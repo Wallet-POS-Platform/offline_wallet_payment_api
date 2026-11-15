@@ -62,6 +62,14 @@ public class WalletService {
         throw new WalletException(user.getId().toString());
     }
 
+    @Transactional(readOnly = true)
+    public WalletResponse getMerchantWalletById(UUID userId) {
+        Wallet wallet = walletRepository.findMainWalletByMerchantId(userId)
+                .orElseThrow(() -> new WalletNotFoundException("No Active Wallet Found for Merchant: " + userId));
+
+        return toResponse(wallet);
+    }
+
     public WalletResponse toResponse(Wallet wallet) {
         return new WalletResponse(
                 wallet.getId(),
