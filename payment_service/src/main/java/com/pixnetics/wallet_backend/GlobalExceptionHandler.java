@@ -1,6 +1,7 @@
 package com.pixnetics.wallet_backend;
 
 import com.pixnetics.wallet_backend.payment.client.exception.ClientNotFoundException;
+import com.pixnetics.wallet_backend.payment.client.exception.PublicKeyAlreadyRegisteredException;
 import com.pixnetics.wallet_backend.payment.merchant.exception.MerchantNotFoundException;
 import com.pixnetics.wallet_backend.payment.user.exception.UsernameAlreadyExistsException;
 import com.pixnetics.wallet_backend.payment.wallet.exception.WalletException;
@@ -39,6 +40,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UsernameAlreadyExistsException.class)
     public ProblemDetail handleException(UsernameAlreadyExistsException e) {
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                e.getMessage()
+        );
+    }
+
+    @ExceptionHandler(PublicKeyAlreadyRegisteredException.class)
+    public ProblemDetail handleException(PublicKeyAlreadyRegisteredException e) {
         return ProblemDetail.forStatusAndDetail(
                 HttpStatus.CONFLICT,
                 e.getMessage()

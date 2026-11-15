@@ -51,5 +51,9 @@ public record ClientCreationRequest(
         @Schema(example = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCV9YPeqeKETHDebglg+Y4fj2RI")
         @NotBlank(message = "Public key is required")
         @Size(max = 4096, message = "Public key is too long")
-        String publicKey
+        String publicKey,
+
+        @Schema(example = "EUR")
+        @NotBlank(message = "Main Wallet Currency")
+        String currency
 ) {}

@@ -52,7 +52,7 @@ class ClientEndpointTests {
 	void testCreateClient() throws Exception {
         ClientCreationRequest request = new ClientCreationRequest(
                 "test_user_01", "password123", "Jane", "Doe", "123 Main Street", "+491234567890", "DE",
-                "PK_GIuwVRcMjIRmLQ3DX5/AhDNbiRt"
+                "PK_GIuwVRcMjIRmLQ3DX5/AhDNbiRt", "EUR"
         );
 
         String json = objectMapper.writeValueAsString(request);
@@ -81,7 +81,7 @@ class ClientEndpointTests {
 	void testGetClient() throws Exception {
 		ClientResponse testClient = clientService.create(new ClientCreationRequest(
 				"test_user_02", "password456", "John", "Smith", null, null, null,
-				"PK_MIGfMA0GCSqGSIb3DQEBAQUAA4GNAD"
+				"PK_MIGfMA0GCSqGSIb3DQEBAQUAA4GNAD", "EUR"
 		));
 
 		MvcResult result = mockMvc.perform(

@@ -40,5 +40,5 @@ public class Client {
     private byte[] publicKey;
 
     @Column(name = "is_public_key_active", nullable = false)
-    private boolean isPublicKeyActive;
+    private boolean isPublicKeyActive = true;
 }

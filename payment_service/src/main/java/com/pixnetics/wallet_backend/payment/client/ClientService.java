@@ -5,6 +5,7 @@ import com.pixnetics.wallet_backend.enums.WalletType;
 import com.pixnetics.wallet_backend.payment.client.dto.ClientCreationRequest;
 import com.pixnetics.wallet_backend.payment.client.dto.ClientResponse;
 import com.pixnetics.wallet_backend.payment.client.exception.ClientNotFoundException;
+import com.pixnetics.wallet_backend.payment.client.exception.PublicKeyAlreadyRegisteredException;
 import com.pixnetics.wallet_backend.payment.user.User;
 import com.pixnetics.wallet_backend.payment.user.UserRepository;
 import com.pixnetics.wallet_backend.payment.user.exception.UsernameAlreadyExistsException;
@@ -34,7 +35,7 @@ public class ClientService {
     public ClientResponse getById(UUID id) {
         log.info("Getting a new client");
 
-        Client client = clientRepository.findClientById(id)
+        Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException(id));
 
         List<WalletResponse> wallets = client.getUser().getWallets().stream()
@@ -73,6 +74,12 @@ public class ClientService {
         }
         log.info("Username is not exists check passed");
 
+        byte[] publicKey = request.publicKey().getBytes(StandardCharsets.UTF_8);
+        if (clientRepository.existsByPublicKey(publicKey)) {
+            throw new PublicKeyAlreadyRegisteredException("This public key cannot be accepted");
+        }
+        log.info("Given public key accepted");
+
         User user = new User();
         user.setRole(UserRole.CLIENT);
         user.setUsername(request.username());
@@ -85,14 +92,12 @@ public class ClientService {
         client.setAddress(request.address());
         client.setPhoneNumber(request.phoneNumber());
         client.setCountry(request.countryCode());
-        client.setPublicKey(request.publicKey().getBytes(StandardCharsets.UTF_8));
+        client.setPublicKey(publicKey);
 
         Client savedClient = clientRepository.save(client);
         log.info("Client record created");
 
-        WalletCreationRequest initialWalletRequest = new WalletCreationRequest("Main", "EUR");
-
-        WalletResponse initialWallet = walletService.createWallet(savedClient.getUser(), initialWalletRequest, WalletType.MAIN);
+        WalletResponse initialWallet = walletService.createWallet("Main", savedClient.getUser(), WalletType.MAIN, request.currency());
         log.info("Client main wallet created");
 
         return new ClientResponse(

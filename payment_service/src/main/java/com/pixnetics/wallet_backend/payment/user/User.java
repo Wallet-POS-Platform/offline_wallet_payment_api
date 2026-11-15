@@ -34,9 +34,8 @@ public class User {
     private String passwordHash;
 
     @Column(name = "is_active")
-    private boolean isActive;
+    private boolean isActive = true;
 
-    @OneToMany
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @OneToMany(mappedBy = "user")
     private List<Wallet> wallets;
 }

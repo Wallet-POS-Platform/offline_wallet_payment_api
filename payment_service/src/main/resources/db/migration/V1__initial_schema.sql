@@ -1,12 +1,12 @@
 CREATE TABLE "users" (
     id            uuid        PRIMARY KEY,
     created_at    timestamptz NOT NULL DEFAULT now(),
-    type          text        NOT NULL,
+    role          text        NOT NULL,
     username      text        NOT NULL UNIQUE,
     password_hash text        NOT NULL,
     is_active     boolean     NOT NULL DEFAULT TRUE,
 
-    CONSTRAINT chk_user_type CHECK (type IN ('CLIENT', 'MERCHANT'))
+    CONSTRAINT chk_user_type CHECK (role IN ('CLIENT', 'MERCHANT', 'OPERATOR', 'ADMIN'))
 );
 
 CREATE TABLE "clients" (

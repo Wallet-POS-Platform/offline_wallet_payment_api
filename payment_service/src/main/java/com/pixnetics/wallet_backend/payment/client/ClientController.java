@@ -81,7 +81,7 @@ public class ClientController {
     @PostMapping("/{id}/wallet")
     @Operation(
             summary = "Create a wallet for a client",
-            description = "Creates an additional wallet for an existing client."
+            description = "Creates an sub wallet for an existing client."
     )
     @ApiResponse(responseCode = "201", description = "Wallet successfully created")
     public ResponseEntity<WalletResponse> createWallet(
@@ -89,7 +89,7 @@ public class ClientController {
                                                     @PathVariable UUID id,
                                                     @Valid @RequestBody WalletCreationRequest request) {
         log.info("Creating a new wallet");
-        WalletResponse response = walletService.create(id, request);
+        WalletResponse response = walletService.createWalletForClient(id, request);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
