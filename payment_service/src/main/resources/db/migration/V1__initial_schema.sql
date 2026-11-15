@@ -60,25 +60,26 @@ CREATE TABLE "transactions" (
     updated_at     timestamptz   NOT NULL DEFAULT now(),
     type           text          NOT NULL,
     status         text          NOT NULL,
-    from_wallet_id uuid          REFERENCES wallets (id),
-    to_wallet_id   uuid          REFERENCES wallets (id),
+    ref_id         uuid          REFERENCES transactions (id),
+    from_wallet_id uuid          NOT NULL REFERENCES wallets (id),
+    to_wallet_id   uuid          NOT NULL REFERENCES wallets (id),
+    terminal_id    uuid          REFERENCES terminals (id),
     amount         numeric(10,2) NOT NULL,
     vat_rate       numeric(4,2)  NOT NULL DEFAULT 0,
     currency       text          NOT NULL DEFAULT 'EUR',
     failure_reason text,
 
-    CONSTRAINT chk_transaction_status CHECK (status IN ('PENDING', 'SUCCESS', 'CANCELED'))
+    CONSTRAINT chk_transaction_status CHECK (status IN ('PENDING', 'SUCCESS', 'CANCELED')),
+    CONSTRAINT chk_transaction_type CHECK (type IN ('PURCHASE', 'REFUND', 'TRANSFER', 'WITHDRAW', 'TOPUP', 'SETTLE'))
 );
 
 CREATE TABLE "ledger" (
     id          uuid          PRIMARY KEY,
     created_at  timestamptz   NOT NULL DEFAULT now(),
     trans_id    uuid          NOT NULL REFERENCES transactions (id),
-    ref_id      uuid          REFERENCES transactions (id),
     wallet_id   uuid          NOT NULL REFERENCES wallets (id),
     amount      numeric(10,2) NOT NULL,
-    vat         numeric(10,2) NOT NULL DEFAULT 0,
-    vat_rate    numeric(4,2)  NOT NULL DEFAULT 0,
-    currency    text          NOT NULL DEFAULT 'EUR',
-    type        text          NOT NULL
+    vat         numeric(10,2) NOT NULL,
+    vat_rate    numeric(4,2)  NOT NULL,
+    currency    text          NOT NULL
 );

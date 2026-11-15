@@ -1,6 +1,8 @@
 package com.pixnetics.wallet_backend.payment.transaction;
 
 import com.pixnetics.wallet_backend.enums.TransactionStatus;
+import com.pixnetics.wallet_backend.enums.TransactionType;
+import com.pixnetics.wallet_backend.payment.terminal.Terminal;
 import com.pixnetics.wallet_backend.payment.wallet.Wallet;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -24,20 +26,29 @@ public class Transaction {
     @Column(name = "updated_at", nullable = false, insertable = false)
     private Instant updatedAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
-    private String type;
+    private TransactionType type;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private TransactionStatus status;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ref_id", referencedColumnName = "id")
+    private Transaction refId;
+    
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "from_wallet_id", referencedColumnName = "id")
     private Wallet fromWalletId;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "to_wallet_id", referencedColumnName = "id")
     private Wallet toWalletId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "terminal_id", referencedColumnName = "id")
+    private Terminal terminalId;
 
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
