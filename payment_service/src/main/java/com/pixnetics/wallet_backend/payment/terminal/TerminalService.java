@@ -5,12 +5,12 @@ import com.pixnetics.wallet_backend.payment.merchant.MerchantRepository;
 import com.pixnetics.wallet_backend.payment.merchant.exception.MerchantNotFoundException;
 import com.pixnetics.wallet_backend.payment.terminal.dto.TerminalCreationRequest;
 import com.pixnetics.wallet_backend.payment.terminal.dto.TerminalResponse;
-import com.pixnetics.wallet_backend.payment.terminal.exception.TerminalNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -21,12 +21,17 @@ public class TerminalService {
     private final MerchantRepository merchantRepository;
 
     @Transactional(readOnly = true)
-    public TerminalResponse getById(UUID id) {
-        log.info("Getting terminal by ID: {}", id);
-        Terminal terminal = terminalRepository.findById(id)
-                .orElseThrow(() -> new TerminalNotFoundException(id));
+    public List<TerminalResponse> getTerminalsByMerchantId(UUID merchantId) {
+        log.info("Getting terminals for merchant: {}", merchantId);
 
-        return toResponse(terminal);
+        if (!merchantRepository.existsById(merchantId)) {
+            throw new MerchantNotFoundException(merchantId);
+        }
+
+        return terminalRepository.findAllByMerchantId(merchantId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional
@@ -39,18 +44,15 @@ public class TerminalService {
         Terminal terminal = new Terminal();
         terminal.setMerchant(merchant);
         terminal.setName(request.name());
-        terminal.setCertificateSerialNumber(request.certificateSerialNumber());
-        terminal.setStatus("ACTIVE");
+        terminal.setCertId(request.certificateSerialNumber());
 
         return toResponse(terminalRepository.save(terminal));
     }
 
     private TerminalResponse toResponse(Terminal terminal) {
         return new TerminalResponse(
-                terminal.getId(),
-                terminal.getName(),
-                terminal.getCertificateSerialNumber(),
-                terminal.getStatus()
+            terminal.getId(),
+            terminal.getName()
         );
     }
 }

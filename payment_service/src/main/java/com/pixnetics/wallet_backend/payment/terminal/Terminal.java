@@ -35,8 +35,8 @@ public class Terminal {
     private String certId;
 
     @Column(name = "is_cert_active", nullable = false)
-    private boolean isCertActive;
+    private boolean isCertActive = true;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    private boolean isActive = true;
 }

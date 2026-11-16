@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -60,6 +61,21 @@ public class MerchantController {
                 .toUri();
 
         return ResponseEntity.created(location).body(response);
+    }
+
+    @GetMapping("/{merchantId}/terminals")
+    @Operation(
+            summary = "Get all terminals of a merchant",
+            description = "Returns all active and inactive terminals belonging to the specified merchant"
+    )
+    @ApiResponse(responseCode = "200", description = "Terminals successfully retrieved")
+    public ResponseEntity<List<TerminalResponse>> getAllTerminals(
+            @Parameter(description = "Unique identifier of the merchant", required = true)
+            @PathVariable UUID merchantId
+    ) {
+        log.info("Getting all terminals for merchant: {}", merchantId);
+
+        return ResponseEntity.ok(terminalService.getTerminalsByMerchantId(merchantId));
     }
 
     @PostMapping("/{merchantId}/terminals")
