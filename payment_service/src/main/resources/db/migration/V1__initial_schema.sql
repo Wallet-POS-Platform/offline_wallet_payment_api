@@ -6,7 +6,7 @@ CREATE TABLE "users" (
     password_hash text        NOT NULL,
     is_active     boolean     NOT NULL DEFAULT TRUE,
 
-    CONSTRAINT chk_user_type CHECK (role IN ('CLIENT', 'MERCHANT', 'OPERATOR', 'ADMIN'))
+    CONSTRAINT chk_user_type CHECK (role IN ('CLIENT', 'MERCHANT', 'OPERATOR', 'ADMIN', 'SYSTEM'))
 );
 
 CREATE TABLE "clients" (
@@ -51,7 +51,7 @@ CREATE TABLE "wallets" (
     balance     numeric(10,2) NOT NULL DEFAULT 0,
     is_active   boolean       NOT NULL DEFAULT TRUE,
 
-    CONSTRAINT chk_wallet_type CHECK (type IN ('MAIN', 'SUB'))
+    CONSTRAINT chk_wallet_type CHECK (type IN ('MAIN', 'SUB', 'CLEARING'))
 );
 
 CREATE TABLE "transactions" (

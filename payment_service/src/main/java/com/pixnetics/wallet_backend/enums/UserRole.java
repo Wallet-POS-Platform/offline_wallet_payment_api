@@ -4,5 +4,6 @@ public enum UserRole {
     CLIENT,
     MERCHANT,
     OPERATOR,
-    ADMIN
+    ADMIN,
+    SYSTEM
 }
