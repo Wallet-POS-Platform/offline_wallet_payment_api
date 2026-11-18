@@ -2,6 +2,9 @@ package com.pixnetics.wallet_backend.payment.client;
 
 import com.pixnetics.wallet_backend.payment.client.dto.ClientCreationRequest;
 import com.pixnetics.wallet_backend.payment.client.dto.ClientResponse;
+import com.pixnetics.wallet_backend.payment.client.dto.TopUpRequest;
+import com.pixnetics.wallet_backend.payment.client.dto.WithdrawRequest;
+import com.pixnetics.wallet_backend.payment.transaction.TransactionResponse;
 import com.pixnetics.wallet_backend.payment.wallet.WalletService;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletCreationRequest;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletResponse;
@@ -112,15 +115,54 @@ public class ClientController {
         return ResponseEntity.ok(walletService.getClientWalletsById(id));
     }
 
-    @PostMapping("/topup")
-    public String topup() {
-        log.info("Doing topup");
-        return "topup done!";
+    @PostMapping("/{id}/topup")
+    @Operation(
+            summary = "Top up a wallet",
+            description = "Adds funds to the specified wallet from the internal clearing wallet"
+    )
+    @ApiResponse(responseCode = "201", description = "Wallet successfully topped up")
+    public ResponseEntity<TransactionResponse> topup(
+            @Parameter(description = "Unique identifier of the wallet", required = true)
+            @PathVariable UUID id,
+
+            @Valid @RequestBody TopUpRequest request
+    ) {
+        log.info("Received top-up request for wallet: {}", id);
+
+        TransactionResponse response = walletService.topup(id, request);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(response.transactionId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(response);
     }
 
-    @PostMapping("/withdraw")
-    public String withdraw() {
-        return "withdraw done!";
+    @PostMapping("/{id}/withdraw")
+    @Operation(
+            summary = "Withdraw from a wallet",
+            description = "Withdraws funds from the specified wallet to the internal clearing wallet"
+    )
+    @ApiResponse(responseCode = "201", description = "Withdrawal successfully completed")
+    public ResponseEntity<TransactionResponse> withdraw(
+            @Parameter(description = "Unique identifier of the wallet", required = true)
+            @PathVariable UUID id,
+
+            @Valid @RequestBody WithdrawRequest request
+    ) {
+        log.info("Received withdrawal request for wallet: {}", id);
+
+        TransactionResponse response = walletService.withdraw(id, request);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(response.transactionId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(response);
     }
 
 

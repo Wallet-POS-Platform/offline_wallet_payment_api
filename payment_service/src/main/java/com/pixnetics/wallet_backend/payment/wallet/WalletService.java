@@ -1,14 +1,24 @@
 package com.pixnetics.wallet_backend.payment.wallet;
 
+import com.pixnetics.wallet_backend.enums.TransactionStatus;
+import com.pixnetics.wallet_backend.enums.TransactionType;
 import com.pixnetics.wallet_backend.enums.UserRole;
 import com.pixnetics.wallet_backend.enums.WalletType;
+import com.pixnetics.wallet_backend.payment.client.dto.TopUpRequest;
+import com.pixnetics.wallet_backend.payment.client.dto.WithdrawRequest;
 import com.pixnetics.wallet_backend.payment.client.exception.ClientNotFoundException;
+import com.pixnetics.wallet_backend.payment.ledger.Ledger;
+import com.pixnetics.wallet_backend.payment.ledger.LedgerRepository;
+import com.pixnetics.wallet_backend.payment.transaction.Transaction;
+import com.pixnetics.wallet_backend.payment.transaction.TransactionRepository;
+import com.pixnetics.wallet_backend.payment.transaction.TransactionResponse;
+import com.pixnetics.wallet_backend.payment.transaction.exception.InsufficientFundsException;
+import com.pixnetics.wallet_backend.payment.transaction.exception.TransactionException;
 import com.pixnetics.wallet_backend.payment.user.User;
 import com.pixnetics.wallet_backend.payment.user.UserRepository;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletCreationRequest;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletResponse;
-import com.pixnetics.wallet_backend.payment.wallet.exception.WalletCreationException;
-import com.pixnetics.wallet_backend.payment.wallet.exception.WalletNotFoundException;
+import com.pixnetics.wallet_backend.payment.wallet.exception.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +34,8 @@ import java.util.UUID;
 public class WalletService {
     private final WalletRepository walletRepository;
     private final UserRepository userRepository;
+    private final TransactionRepository transactionRepository;
+    private final LedgerRepository ledgerRepository;
 
     @Transactional
     public WalletResponse createWalletForClient(UUID userId, WalletCreationRequest request) {
@@ -62,12 +74,12 @@ public class WalletService {
     @Transactional(readOnly = true)
     public WalletResponse getMerchantWalletById(UUID userId) {
         Wallet wallet = walletRepository.findMainWalletByMerchantId(userId)
-                .orElseThrow(() -> new WalletNotFoundException("No Active Wallet Found for Merchant: " + userId));
+                .orElseThrow(() -> new WalletNotFoundException(userId));
 
         return toResponse(wallet);
     }
 
-    public WalletResponse toResponse(Wallet wallet) {
+    private WalletResponse toResponse(Wallet wallet) {
         return new WalletResponse(
                 wallet.getId(),
                 wallet.getName(),
@@ -76,5 +88,108 @@ public class WalletService {
                 wallet.getCurrency(),
                 wallet.isActive()
         );
+    }
+
+    @Transactional
+    public TransactionResponse topup(UUID walletId, TopUpRequest request) {
+        return executeWalletOperation(walletId, request.amount(), TransactionType.TOPUP);
+    }
+
+    @Transactional
+    public TransactionResponse withdraw(UUID walletId, WithdrawRequest request) {
+        return executeWalletOperation(walletId, request.amount(), TransactionType.WITHDRAW);
+    }
+
+    private TransactionResponse executeWalletOperation(UUID walletId, BigDecimal amount, TransactionType type) {
+        // Always acquire locks in the same order: customer wallet, then clearing wallet.
+        Wallet wallet = walletRepository.findLockedWalletById(walletId)
+                .orElseThrow(() -> new WalletNotFoundException(walletId));
+
+        Wallet clearingWallet = walletRepository.findClearingWallet()
+                .orElseThrow(() -> new WalletNotFoundException(WalletType.CLEARING));
+
+        if(wallet.getId().equals(clearingWallet.getId())){
+            throw new TransactionException("The clearing wallet cannot be used as a user wallet");
+        }
+        
+        validateWallet(wallet);
+        validateWallet(clearingWallet);
+
+        if (!wallet.getCurrency().equals(clearingWallet.getCurrency())) {
+            throw new WalletCurrencyMismatchException(wallet.getCurrency(), clearingWallet.getCurrency());
+        }
+
+        Wallet debitWallet;
+        Wallet creditWallet;
+
+        if (type == TransactionType.TOPUP) {
+            debitWallet = clearingWallet;
+            creditWallet = wallet;
+        } else {
+            debitWallet = wallet;
+            creditWallet = clearingWallet;
+        }
+
+        if (debitWallet.getBalance().compareTo(amount) < 0) {
+            throw new InsufficientFundsException(debitWallet.getId());
+        }
+
+        // Update balances.
+        debitWallet.setBalance(debitWallet.getBalance().subtract(amount));
+        creditWallet.setBalance(creditWallet.getBalance().add(amount));
+
+        // Create transaction.
+        Transaction transaction = new Transaction();
+        transaction.setType(type);
+        transaction.setStatus(TransactionStatus.SUCCESS);
+        transaction.setFromWalletId(debitWallet);
+        transaction.setToWalletId(creditWallet);
+        transaction.setAmount(amount);
+        transaction.setCurrency(wallet.getCurrency());
+        transaction.setVatRate(BigDecimal.ZERO);
+
+        transaction = transactionRepository.saveAndFlush(transaction);
+
+        // Create double-entry ledger records.
+        Ledger debitEntry = createLedgerEntry(transaction, debitWallet, amount.negate());
+        Ledger creditEntry = createLedgerEntry(transaction, creditWallet, amount);
+
+        ledgerRepository.saveAll(List.of(debitEntry, creditEntry));
+
+        log.info("{} completed. Transaction ID: {}, Wallet ID: {}, Amount: {} {}",
+                type,
+                transaction.getId(),
+                walletId,
+                amount,
+                wallet.getCurrency()
+        );
+
+        return new TransactionResponse(
+                transaction.getId(),
+                wallet.getId(),
+                transaction.getType(),
+                transaction.getStatus(),
+                transaction.getAmount(),
+                transaction.getCurrency(),
+                wallet.getBalance()
+        );
+    }
+
+    private void validateWallet(Wallet wallet) {
+        if (!wallet.isActive()) {
+            throw new WalletInactiveException(wallet.getId());
+        }
+    }
+
+    private Ledger createLedgerEntry(Transaction transaction, Wallet wallet, BigDecimal amount) {
+        Ledger ledger = new Ledger();
+        ledger.setTransaction(transaction);
+        ledger.setWallet(wallet);
+        ledger.setAmount(amount);
+        ledger.setVat(BigDecimal.ZERO);
+        ledger.setVatRate(BigDecimal.ZERO);
+        ledger.setCurrency(wallet.getCurrency());
+
+        return ledger;
     }
 }
