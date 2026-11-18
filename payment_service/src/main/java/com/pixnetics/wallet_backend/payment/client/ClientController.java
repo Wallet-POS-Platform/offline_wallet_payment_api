@@ -122,12 +122,12 @@ public class ClientController {
     )
     @ApiResponse(responseCode = "201", description = "Wallet successfully topped up")
     public ResponseEntity<TransactionResponse> topup(
-            @Parameter(description = "Unique identifier of the wallet", required = true)
+            @Parameter(description = "Unique identifier of the user", required = true)
             @PathVariable UUID id,
 
             @Valid @RequestBody TopUpRequest request
     ) {
-        log.info("Received top-up request for wallet: {}", id);
+        log.info("Received top-up request for user: {}", id);
 
         TransactionResponse response = walletService.topup(id, request);
 
@@ -147,12 +147,12 @@ public class ClientController {
     )
     @ApiResponse(responseCode = "201", description = "Withdrawal successfully completed")
     public ResponseEntity<TransactionResponse> withdraw(
-            @Parameter(description = "Unique identifier of the wallet", required = true)
+            @Parameter(description = "Unique identifier of the user", required = true)
             @PathVariable UUID id,
 
             @Valid @RequestBody WithdrawRequest request
     ) {
-        log.info("Received withdrawal request for wallet: {}", id);
+        log.info("Received withdrawal request for user: {}", id);
 
         TransactionResponse response = walletService.withdraw(id, request);
 

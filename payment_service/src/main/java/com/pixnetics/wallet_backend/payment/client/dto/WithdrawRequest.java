@@ -8,6 +8,10 @@ import java.util.UUID;
 
 @Schema(description = "Request to withdraw from a wallet")
 public record WithdrawRequest(
+
+        @Schema(description = "Wallet Id of which wallet withdraw should do")
+        UUID walletId,
+
         @Schema(description = "Transaction amount. Must be greater than zero and have at most two decimal places")
         @NotNull(message = "Amount is required")
         @DecimalMin(value = "0.01", message = "Amount must be greater than zero")
@@ -16,5 +20,10 @@ public record WithdrawRequest(
                 fraction = 2,
                 message = "Amount must have at most 8 integer digits and 2 decimal places"
         )
-        BigDecimal amount
+        BigDecimal amount,
+
+        @Schema(description = "Three-letter ISO 4217 currency code", example = "EUR")
+        @NotBlank(message = "Currency is required")
+        @Pattern(regexp = "^[A-Z]{3}$", message = "Currency must be a three-letter uppercase ISO 4217 code")
+        String currency
 ) {}

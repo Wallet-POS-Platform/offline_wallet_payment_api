@@ -91,29 +91,43 @@ public class WalletService {
     }
 
     @Transactional
-    public TransactionResponse topup(UUID walletId, TopUpRequest request) {
-        return executeWalletOperation(walletId, request.amount(), TransactionType.TOPUP);
+    public TransactionResponse topup(UUID userId, TopUpRequest request) {
+        return executeWalletOperation(userId, request.walletId(), request.amount(), request.currency(), TransactionType.TOPUP);
     }
 
     @Transactional
-    public TransactionResponse withdraw(UUID walletId, WithdrawRequest request) {
-        return executeWalletOperation(walletId, request.amount(), TransactionType.WITHDRAW);
+    public TransactionResponse withdraw(UUID userId, WithdrawRequest request) {
+        return executeWalletOperation(userId, request.walletId(), request.amount(), request.currency(), TransactionType.WITHDRAW);
     }
 
-    private TransactionResponse executeWalletOperation(UUID walletId, BigDecimal amount, TransactionType type) {
+    /** This is for temporary Logic. We need RabbitMQ message driven Provider service for async provider handling **/
+    private TransactionResponse executeWalletOperation(UUID userId, UUID walletId, BigDecimal amount, String currency, TransactionType type) {
         // Always acquire locks in the same order: customer wallet, then clearing wallet.
         Wallet wallet = walletRepository.findLockedWalletById(walletId)
-                .orElseThrow(() -> new WalletNotFoundException(walletId));
+                .orElseThrow(() -> new WalletNotFoundException(userId));
+
+        if(!wallet.getUser().getId().equals(userId)){
+            throw new TransactionException("The wallet doesn't belongs to the user");
+        }
+
+        if (!wallet.isActive()) {
+            throw new WalletInactiveException(wallet.getId());
+        }
+
+        if (!wallet.getCurrency().equals(currency)) {
+            throw new WalletCurrencyMismatchException(wallet.getCurrency(), currency);
+        }
 
         Wallet clearingWallet = walletRepository.findClearingWallet()
                 .orElseThrow(() -> new WalletNotFoundException(WalletType.CLEARING));
 
+        if (!clearingWallet.isActive()) {
+            throw new WalletInactiveException(wallet.getId());
+        }
+
         if(wallet.getId().equals(clearingWallet.getId())){
             throw new TransactionException("The clearing wallet cannot be used as a user wallet");
         }
-        
-        validateWallet(wallet);
-        validateWallet(clearingWallet);
 
         if (!wallet.getCurrency().equals(clearingWallet.getCurrency())) {
             throw new WalletCurrencyMismatchException(wallet.getCurrency(), clearingWallet.getCurrency());
@@ -159,7 +173,7 @@ public class WalletService {
         log.info("{} completed. Transaction ID: {}, Wallet ID: {}, Amount: {} {}",
                 type,
                 transaction.getId(),
-                walletId,
+                userId,
                 amount,
                 wallet.getCurrency()
         );
@@ -173,12 +187,6 @@ public class WalletService {
                 transaction.getCurrency(),
                 wallet.getBalance()
         );
-    }
-
-    private void validateWallet(Wallet wallet) {
-        if (!wallet.isActive()) {
-            throw new WalletInactiveException(wallet.getId());
-        }
     }
 
     private Ledger createLedgerEntry(Transaction transaction, Wallet wallet, BigDecimal amount) {

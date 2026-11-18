@@ -9,6 +9,8 @@ import java.util.UUID;
 @Schema(description = "Request to top up from a wallet")
 public record TopUpRequest(
 
+        @Schema(description = "Wallet Id of which wallet top up should do")
+        UUID walletId,
 
         @Schema(description = "Transaction amount. Must be greater than zero and have at most two decimal places")
         @NotNull(message = "Amount is required")
@@ -18,5 +20,10 @@ public record TopUpRequest(
                 fraction = 2,
                 message = "Amount must have at most 8 integer digits and 2 decimal places"
         )
-        BigDecimal amount
+        BigDecimal amount,
+
+        @Schema(description = "Three-letter ISO 4217 currency code", example = "EUR")
+        @NotBlank(message = "Currency is required")
+        @Pattern(regexp = "^[A-Z]{3}$", message = "Currency must be a three-letter uppercase ISO 4217 code")
+        String currency
 ) {}
