@@ -7,7 +7,7 @@ import java.util.UUID;
 public class WalletNotFoundException extends RuntimeException {
 
     public WalletNotFoundException(UUID userId) {
-        super("No Active Wallet Found for User: " + userId);
+        super("Wallet cannot found for the user: " + userId);
     }
 
     public WalletNotFoundException(WalletType type) {

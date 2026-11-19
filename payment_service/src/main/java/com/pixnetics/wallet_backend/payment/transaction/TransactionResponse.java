@@ -17,12 +17,6 @@ public record TransactionResponse(
         UUID transactionId,
 
         @Schema(
-                description = "Unique identifier of the affected wallet",
-                example = "650e8400-e29b-41d4-a716-446655440000"
-        )
-        UUID walletId,
-
-        @Schema(
                 description = "Transaction type",
                 example = "TOPUP"
         )
@@ -44,11 +38,5 @@ public record TransactionResponse(
                 description = "Wallet currency",
                 example = "EUR"
         )
-        String currency,
-
-        @Schema(
-                description = "Wallet balance after the transaction",
-                example = "150.00"
-        )
-        BigDecimal resultingBalance
+        String currency
 ) {}

@@ -1,24 +1,22 @@
 package com.pixnetics.wallet_backend.payment.wallet;
 
-import com.pixnetics.wallet_backend.enums.TransactionStatus;
-import com.pixnetics.wallet_backend.enums.TransactionType;
 import com.pixnetics.wallet_backend.enums.UserRole;
 import com.pixnetics.wallet_backend.enums.WalletType;
 import com.pixnetics.wallet_backend.payment.client.dto.TopUpRequest;
 import com.pixnetics.wallet_backend.payment.client.dto.WithdrawRequest;
 import com.pixnetics.wallet_backend.payment.client.exception.ClientNotFoundException;
-import com.pixnetics.wallet_backend.payment.ledger.Ledger;
-import com.pixnetics.wallet_backend.payment.ledger.LedgerRepository;
-import com.pixnetics.wallet_backend.payment.transaction.Transaction;
-import com.pixnetics.wallet_backend.payment.transaction.TransactionRepository;
 import com.pixnetics.wallet_backend.payment.transaction.TransactionResponse;
-import com.pixnetics.wallet_backend.payment.transaction.exception.InsufficientFundsException;
+import com.pixnetics.wallet_backend.payment.transaction.TransactionService;
+import com.pixnetics.wallet_backend.payment.transaction.exception.CurrencyMismatchException;
 import com.pixnetics.wallet_backend.payment.transaction.exception.TransactionException;
 import com.pixnetics.wallet_backend.payment.user.User;
 import com.pixnetics.wallet_backend.payment.user.UserRepository;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletCreationRequest;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletResponse;
-import com.pixnetics.wallet_backend.payment.wallet.exception.*;
+import com.pixnetics.wallet_backend.payment.wallet.exception.WalletAccessDeniedException;
+import com.pixnetics.wallet_backend.payment.wallet.exception.WalletCreationException;
+import com.pixnetics.wallet_backend.payment.wallet.exception.WalletInactiveException;
+import com.pixnetics.wallet_backend.payment.wallet.exception.WalletNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,8 +32,7 @@ import java.util.UUID;
 public class WalletService {
     private final WalletRepository walletRepository;
     private final UserRepository userRepository;
-    private final TransactionRepository transactionRepository;
-    private final LedgerRepository ledgerRepository;
+    private final TransactionService transactionService;
 
     @Transactional
     public WalletResponse createWalletForClient(UUID userId, WalletCreationRequest request) {
@@ -92,112 +89,75 @@ public class WalletService {
 
     @Transactional
     public TransactionResponse topup(UUID userId, TopUpRequest request) {
-        return executeWalletOperation(userId, request.walletId(), request.amount(), request.currency(), TransactionType.TOPUP);
-    }
-
-    @Transactional
-    public TransactionResponse withdraw(UUID userId, WithdrawRequest request) {
-        return executeWalletOperation(userId, request.walletId(), request.amount(), request.currency(), TransactionType.WITHDRAW);
-    }
-
-    /** This is for temporary Logic. We need RabbitMQ message driven Provider service for async provider handling **/
-    private TransactionResponse executeWalletOperation(UUID userId, UUID walletId, BigDecimal amount, String currency, TransactionType type) {
-        // Always acquire locks in the same order: customer wallet, then clearing wallet.
-        Wallet wallet = walletRepository.findLockedWalletById(walletId)
+        Wallet userWallet = walletRepository.findLockedWalletById(request.walletId())
                 .orElseThrow(() -> new WalletNotFoundException(userId));
 
-        if(!wallet.getUser().getId().equals(userId)){
-            throw new TransactionException("The wallet doesn't belongs to the user");
-        }
+        log.info("Topup wallet is found");
 
-        if (!wallet.isActive()) {
-            throw new WalletInactiveException(wallet.getId());
+        if(!userWallet.getUser().getId().equals(userId)){
+            throw new WalletAccessDeniedException ("Not authorized to access provided wallet");
         }
+        log.info("Topup wallet is belongs to the requested user");
 
-        if (!wallet.getCurrency().equals(currency)) {
-            throw new WalletCurrencyMismatchException(wallet.getCurrency(), currency);
+        if (!userWallet.isActive()) {
+            throw new WalletInactiveException(userWallet.getId());
         }
+        log.info("Topup Wallet is active");
 
         Wallet clearingWallet = walletRepository.findClearingWallet()
                 .orElseThrow(() -> new WalletNotFoundException(WalletType.CLEARING));
 
         if (!clearingWallet.isActive()) {
-            throw new WalletInactiveException(wallet.getId());
+            throw new WalletInactiveException(userWallet.getId());
         }
+        log.info("Clearing wallet is found");
 
-        if(wallet.getId().equals(clearingWallet.getId())){
+        if(userWallet.getId().equals(clearingWallet.getId())){
             throw new TransactionException("The clearing wallet cannot be used as a user wallet");
         }
 
-        if (!wallet.getCurrency().equals(clearingWallet.getCurrency())) {
-            throw new WalletCurrencyMismatchException(wallet.getCurrency(), clearingWallet.getCurrency());
+        if (!userWallet.getCurrency().equals(clearingWallet.getCurrency())) {
+            throw new CurrencyMismatchException(userWallet.getCurrency(), clearingWallet.getCurrency());
         }
 
-        Wallet debitWallet;
-        Wallet creditWallet;
-
-        if (type == TransactionType.TOPUP) {
-            debitWallet = clearingWallet;
-            creditWallet = wallet;
-        } else {
-            debitWallet = wallet;
-            creditWallet = clearingWallet;
-        }
-
-        if (debitWallet.getBalance().compareTo(amount) < 0) {
-            throw new InsufficientFundsException(debitWallet.getId());
-        }
-
-        // Update balances.
-        debitWallet.setBalance(debitWallet.getBalance().subtract(amount));
-        creditWallet.setBalance(creditWallet.getBalance().add(amount));
-
-        // Create transaction.
-        Transaction transaction = new Transaction();
-        transaction.setType(type);
-        transaction.setStatus(TransactionStatus.SUCCESS);
-        transaction.setFromWalletId(debitWallet);
-        transaction.setToWalletId(creditWallet);
-        transaction.setAmount(amount);
-        transaction.setCurrency(wallet.getCurrency());
-        transaction.setVatRate(BigDecimal.ZERO);
-
-        transaction = transactionRepository.saveAndFlush(transaction);
-
-        // Create double-entry ledger records.
-        Ledger debitEntry = createLedgerEntry(transaction, debitWallet, amount.negate());
-        Ledger creditEntry = createLedgerEntry(transaction, creditWallet, amount);
-
-        ledgerRepository.saveAll(List.of(debitEntry, creditEntry));
-
-        log.info("{} completed. Transaction ID: {}, Wallet ID: {}, Amount: {} {}",
-                type,
-                transaction.getId(),
-                userId,
-                amount,
-                wallet.getCurrency()
-        );
-
-        return new TransactionResponse(
-                transaction.getId(),
-                wallet.getId(),
-                transaction.getType(),
-                transaction.getStatus(),
-                transaction.getAmount(),
-                transaction.getCurrency(),
-                wallet.getBalance()
-        );
+        log.info("Performing the topup request");
+        return transactionService.performTopup(clearingWallet, userWallet, request.amount());
     }
 
-    private Ledger createLedgerEntry(Transaction transaction, Wallet wallet, BigDecimal amount) {
-        Ledger ledger = new Ledger();
-        ledger.setTransaction(transaction);
-        ledger.setWallet(wallet);
-        ledger.setAmount(amount);
-        ledger.setVat(BigDecimal.ZERO);
-        ledger.setVatRate(BigDecimal.ZERO);
-        ledger.setCurrency(wallet.getCurrency());
+    @Transactional
+    public TransactionResponse withdraw(UUID userId, WithdrawRequest request) {
+        Wallet userWallet = walletRepository.findLockedWalletById(request.walletId())
+                .orElseThrow(() -> new WalletNotFoundException(userId));
 
-        return ledger;
+        log.info("Withdraw wallet is found");
+
+        if(!userWallet.getUser().getId().equals(userId)){
+            throw new WalletAccessDeniedException ("Not authorized to access provided wallet");
+        }
+        log.info("Withdraw wallet is belongs to the authorized user");
+
+        if (!userWallet.isActive()) {
+            throw new WalletInactiveException(userWallet.getId());
+        }
+        log.info("Withdraw Wallet is active");
+
+        Wallet clearingWallet = walletRepository.findClearingWallet()
+                .orElseThrow(() -> new WalletNotFoundException(WalletType.CLEARING));
+
+        if (!clearingWallet.isActive()) {
+            throw new WalletInactiveException(userWallet.getId());
+        }
+        log.info("Clearing wallet is found");
+
+        if(userWallet.getId().equals(clearingWallet.getId())){
+            throw new TransactionException("The clearing wallet cannot be used as a user wallet");
+        }
+
+        if (!userWallet.getCurrency().equals(clearingWallet.getCurrency())) {
+            throw new CurrencyMismatchException(userWallet.getCurrency(), clearingWallet.getCurrency());
+        }
+
+        log.info("Performing the withdraw request");
+        return transactionService.performWithdraw(userWallet, clearingWallet, request.amount());
     }
 }
