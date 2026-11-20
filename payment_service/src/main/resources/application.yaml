@@ -31,6 +31,8 @@ spring:
 logging:
   level:
     org.hibernate.orm.connections.pooling: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%-5level] [%-25.-25logger{0}:%-4line] %msg%n"
 
 springdoc:
   api-docs:
