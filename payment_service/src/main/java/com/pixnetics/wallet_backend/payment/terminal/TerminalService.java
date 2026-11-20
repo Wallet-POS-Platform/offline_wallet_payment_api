@@ -5,6 +5,7 @@ import com.pixnetics.wallet_backend.payment.merchant.MerchantRepository;
 import com.pixnetics.wallet_backend.payment.merchant.exception.MerchantNotFoundException;
 import com.pixnetics.wallet_backend.payment.terminal.dto.TerminalCreationRequest;
 import com.pixnetics.wallet_backend.payment.terminal.dto.TerminalResponse;
+import com.pixnetics.wallet_backend.payment.terminal.exception.TerminalNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,16 @@ import java.util.UUID;
 public class TerminalService {
     private final TerminalRepository terminalRepository;
     private final MerchantRepository merchantRepository;
+
+    @Transactional(readOnly = true)
+    public TerminalResponse getTerminalById(UUID id) {
+        log.info("Getting terminal by ID: {}", id);
+
+        Terminal terminal = terminalRepository.findById(id)
+                .orElseThrow(() -> new TerminalNotFoundException(id));
+
+        return toResponse(terminal);
+    }
 
     @Transactional(readOnly = true)
     public List<TerminalResponse> getTerminalsByMerchantId(UUID merchantId) {

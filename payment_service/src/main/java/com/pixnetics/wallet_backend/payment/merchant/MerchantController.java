@@ -63,6 +63,21 @@ public class MerchantController {
         return ResponseEntity.created(location).body(response);
     }
 
+    @GetMapping("/terminals/{id}")
+    @Operation(
+            summary = "Get a terminal by ID",
+            description = "Returns a terminal using its unique identifier"
+    )
+    @ApiResponse(responseCode = "200", description = "Terminal successfully retrieved")
+    public ResponseEntity<TerminalResponse> getTerminalById(
+            @Parameter(description = "Unique identifier of the terminal", required = true)
+            @PathVariable UUID id
+    ) {
+        log.info("Getting terminal by ID: {}", id);
+
+        return ResponseEntity.ok(terminalService.getTerminalById(id));
+    }
+
     @GetMapping("/{merchantId}/terminals")
     @Operation(
             summary = "Get all terminals of a merchant",
@@ -94,7 +109,7 @@ public class MerchantController {
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath()
-                .path("/api/v1/terminals/{id}")
+                .path("/api/v1/merchants/terminals/{id}")
                 .buildAndExpand(response.id())
                 .toUri();
 
