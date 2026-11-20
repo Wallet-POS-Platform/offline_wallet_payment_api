@@ -57,7 +57,7 @@ CREATE TABLE "wallets" (
 CREATE TABLE "transactions" (
     id             uuid          PRIMARY KEY,
     created_at     timestamptz   NOT NULL DEFAULT now(),
-    updated_at     timestamptz   NOT NULL DEFAULT now(),
+    updated_at     timestamptz,
     type           text          NOT NULL,
     status         text          NOT NULL,
     ref_id         uuid          REFERENCES transactions (id),
@@ -69,7 +69,7 @@ CREATE TABLE "transactions" (
     currency       text          NOT NULL DEFAULT 'EUR',
     failure_reason text,
 
-    CONSTRAINT chk_transaction_status CHECK (status IN ('PENDING', 'SUCCESS', 'CANCELED')),
+    CONSTRAINT chk_transaction_status CHECK (status IN ('PENDING', 'ON_HOLD', 'SUCCESS', 'FAILED', 'CANCELED', 'EXPIRED', 'REVERSED')),
     CONSTRAINT chk_transaction_type CHECK (type IN ('PURCHASE', 'REFUND', 'TRANSFER', 'WITHDRAW', 'TOPUP', 'SETTLE'))
 );
 
