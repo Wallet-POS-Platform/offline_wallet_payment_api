@@ -9,10 +9,10 @@ import java.util.UUID;
 
 public record ClientResponse(
 
-        @Schema(example = "550e8400-e29b-41d4-a716-446655440000")
+        @Schema(description = "Client unique ID in the system")
         UUID id,
 
-        @Schema(example = "user123")
+        @Schema(description = "Client username", example = "jane123")
         String username,
 
         List<WalletResponse> wallets

@@ -53,7 +53,7 @@ public class ClientController {
     )
     @ApiResponse(responseCode = "200", description = "Client successfully retrieved")
     public ResponseEntity<ClientResponse> getByUsername(
-            @Parameter(description = "Unique username of the client", required = true, example = "user123")
+            @Parameter(description = "Unique username of the client", required = true, example = "jane123")
             @RequestParam String username) {
         log.info("Get Client by username: {}", username);
         return ResponseEntity.ok(clientService.getByUsername(username));
@@ -103,10 +103,10 @@ public class ClientController {
 
     @GetMapping("/{id}/wallets")
     @Operation(
-            summary = "Get all the wallets of a given user",
-            description = "Creates an additional wallet for an existing client."
+            summary = "Get all the wallets of a given client",
+            description = "Give all active and inactive wallets"
     )
-    @ApiResponse(responseCode = "201", description = "Wallet successfully created")
+    @ApiResponse(responseCode = "200", description = "Wallets successfully retrieved")
     public ResponseEntity<List<WalletResponse>> getAllWallet(
             @Parameter(description = "Unique identifier of the client", required = true)
             @PathVariable UUID id) {
