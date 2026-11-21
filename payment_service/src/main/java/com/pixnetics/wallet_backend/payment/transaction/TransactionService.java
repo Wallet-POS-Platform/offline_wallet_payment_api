@@ -6,24 +6,39 @@ import com.pixnetics.wallet_backend.payment.ledger.Ledger;
 import com.pixnetics.wallet_backend.payment.ledger.LedgerRepository;
 import com.pixnetics.wallet_backend.payment.transaction.exception.InsufficientFundsException;
 import com.pixnetics.wallet_backend.payment.wallet.Wallet;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final LedgerRepository ledgerRepository;
 
+    private final EntityManager entityManager;
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void setActor(UUID userId) {
+        entityManager.createNativeQuery("select set_config('app.user_id', :id, true)")
+                .setParameter("id", userId == null ? "" : userId.toString())
+                .getSingleResult();
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
     public TransactionResponse performTopup(Wallet debitWallet, Wallet creditWallet, BigDecimal amount){
         return doTransaction(debitWallet, creditWallet, amount, BigDecimal.ZERO, TransactionType.TOPUP, TransactionStatus.SUCCESS);
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
     public TransactionResponse performWithdraw(Wallet debitWallet, Wallet creditWallet, BigDecimal amount){
         return doTransaction(debitWallet, creditWallet, amount, BigDecimal.ZERO, TransactionType.WITHDRAW, TransactionStatus.SUCCESS);
     }

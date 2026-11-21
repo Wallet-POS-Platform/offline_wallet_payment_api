@@ -105,7 +105,7 @@ public class GlobalExceptionHandler {
     }
     // --------------------- In Built Exceptions -----------------------//
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ProblemDetail handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+    public ProblemDetail handleException(HttpMessageNotReadableException e) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST,
                 "Request body contains invalid values."

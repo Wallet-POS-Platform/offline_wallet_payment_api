@@ -120,6 +120,8 @@ public class WalletService {
             throw new CurrencyMismatchException(userWallet.getCurrency(), clearingWallet.getCurrency());
         }
 
+        transactionService.setActor(userId);
+
         log.info("Performing the topup request");
         return transactionService.performTopup(clearingWallet, userWallet, request.amount());
     }
@@ -156,6 +158,8 @@ public class WalletService {
         if (!userWallet.getCurrency().equals(clearingWallet.getCurrency())) {
             throw new CurrencyMismatchException(userWallet.getCurrency(), clearingWallet.getCurrency());
         }
+
+        transactionService.setActor(userId);
 
         log.info("Performing the withdraw request");
         return transactionService.performWithdraw(userWallet, clearingWallet, request.amount());
