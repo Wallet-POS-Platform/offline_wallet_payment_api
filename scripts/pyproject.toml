@@ -1,0 +1,11 @@
+[project]
+name = "scripts"
+version = "0.1.0"
+description = "Development data seeding scripts for the Wallet Platform API"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31.0",
+    "cryptography>=42.0.0",
+]
+
