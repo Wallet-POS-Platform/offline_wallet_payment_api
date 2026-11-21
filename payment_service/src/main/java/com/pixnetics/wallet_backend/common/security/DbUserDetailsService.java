@@ -1,6 +1,6 @@
-package com.pixnetics.wallet_backend.security;
+package com.pixnetics.wallet_backend.common.security;
 
-import com.pixnetics.wallet_backend.enums.UserRole;
+import com.pixnetics.wallet_backend.common.enums.UserRole;
 import com.pixnetics.wallet_backend.payment.user.User;
 import com.pixnetics.wallet_backend.payment.user.UserRepository;
 import lombok.RequiredArgsConstructor;

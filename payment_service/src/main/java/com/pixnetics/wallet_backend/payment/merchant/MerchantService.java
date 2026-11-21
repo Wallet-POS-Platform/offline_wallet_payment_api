@@ -1,12 +1,12 @@
 package com.pixnetics.wallet_backend.payment.merchant;
 
-import com.pixnetics.wallet_backend.enums.UserRole;
-import com.pixnetics.wallet_backend.enums.WalletType;
+import com.pixnetics.wallet_backend.common.enums.UserRole;
+import com.pixnetics.wallet_backend.common.enums.WalletType;
 import com.pixnetics.wallet_backend.payment.merchant.dto.MerchantCreationRequest;
 import com.pixnetics.wallet_backend.payment.merchant.dto.MerchantResponse;
 import com.pixnetics.wallet_backend.payment.merchant.exception.MerchantNotFoundException;
 import com.pixnetics.wallet_backend.payment.user.User;
-import com.pixnetics.wallet_backend.payment.user.UserRepository;
+import com.pixnetics.wallet_backend.payment.user.UserService;
 import com.pixnetics.wallet_backend.payment.user.exception.UsernameAlreadyExistsException;
 import com.pixnetics.wallet_backend.payment.wallet.WalletService;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletResponse;
@@ -22,11 +22,11 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class MerchantService {
+    private final WalletService walletService;
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
     private final MerchantRepository merchantRepository;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final WalletService walletService;
 
     @Transactional(readOnly = true)
     public MerchantResponse getById(UUID id) {
@@ -42,7 +42,7 @@ public class MerchantService {
     public MerchantResponse create(MerchantCreationRequest request){
         log.info("Creating merchant account");
 
-        if(userRepository.existsByUsername(request.username())){
+        if(userService.existsByUsername(request.username())){
             log.warn("Merchant account creation rejected: username already exists");
             throw new UsernameAlreadyExistsException(request.username());
         }

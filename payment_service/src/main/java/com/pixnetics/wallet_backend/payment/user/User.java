@@ -1,13 +1,11 @@
 package com.pixnetics.wallet_backend.payment.user;
 
-import com.pixnetics.wallet_backend.enums.UserRole;
-import com.pixnetics.wallet_backend.payment.wallet.Wallet;
+import com.pixnetics.wallet_backend.common.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @Getter

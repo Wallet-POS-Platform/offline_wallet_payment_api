@@ -1,6 +1,6 @@
-package com.pixnetics.wallet_backend;
+package com.pixnetics.wallet_backend.common;
 
-import com.pixnetics.wallet_backend.payment.client.exception.ClientNotFoundException;
+import com.pixnetics.wallet_backend.payment.user.exception.UserNotFoundException;
 import com.pixnetics.wallet_backend.payment.client.exception.PublicKeyAlreadyRegisteredException;
 import com.pixnetics.wallet_backend.payment.merchant.exception.MerchantNotFoundException;
 import com.pixnetics.wallet_backend.payment.transaction.exception.TransactionException;
@@ -32,8 +32,8 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     // --------------------- Custom Exceptions -----------------------//
-    @ExceptionHandler(ClientNotFoundException.class)
-    public ProblemDetail handleException(ClientNotFoundException e) {
+    @ExceptionHandler(UserNotFoundException.class)
+    public ProblemDetail handleException(UserNotFoundException e) {
         return ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND,
                 e.getMessage()

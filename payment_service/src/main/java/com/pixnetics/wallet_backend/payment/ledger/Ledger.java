@@ -1,8 +1,6 @@
 package com.pixnetics.wallet_backend.payment.ledger;
 
-import com.pixnetics.wallet_backend.enums.TransactionType;
 import com.pixnetics.wallet_backend.payment.transaction.Transaction;
-import com.pixnetics.wallet_backend.payment.user.User;
 import com.pixnetics.wallet_backend.payment.wallet.Wallet;
 import jakarta.persistence.*;
 import lombok.Data;

@@ -1,13 +1,13 @@
 package com.pixnetics.wallet_backend.payment.client;
 
-import com.pixnetics.wallet_backend.enums.UserRole;
-import com.pixnetics.wallet_backend.enums.WalletType;
+import com.pixnetics.wallet_backend.common.enums.UserRole;
+import com.pixnetics.wallet_backend.common.enums.WalletType;
 import com.pixnetics.wallet_backend.payment.client.dto.ClientCreationRequest;
 import com.pixnetics.wallet_backend.payment.client.dto.ClientResponse;
-import com.pixnetics.wallet_backend.payment.client.exception.ClientNotFoundException;
+import com.pixnetics.wallet_backend.payment.user.UserService;
+import com.pixnetics.wallet_backend.payment.user.exception.UserNotFoundException;
 import com.pixnetics.wallet_backend.payment.client.exception.PublicKeyAlreadyRegisteredException;
 import com.pixnetics.wallet_backend.payment.user.User;
-import com.pixnetics.wallet_backend.payment.user.UserRepository;
 import com.pixnetics.wallet_backend.payment.user.exception.UsernameAlreadyExistsException;
 import com.pixnetics.wallet_backend.payment.wallet.WalletService;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletResponse;
@@ -25,17 +25,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 public class ClientService {
-    private final ClientRepository clientRepository;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final WalletService walletService;
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
+
+    private final ClientRepository clientRepository;
 
     @Transactional(readOnly = true)
     public ClientResponse getById(UUID id) {
         log.info("Getting client by ID: {}", id);
 
         Client client = clientRepository.findById(id)
-                .orElseThrow(() -> new ClientNotFoundException(id));
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         List<WalletResponse> wallets = walletService.getClientWalletsById(client.getId());
 
@@ -50,8 +51,7 @@ public class ClientService {
     public ClientResponse getByUsername(String username) {
         log.info("Getting client by username");
 
-        User client = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ClientNotFoundException(username));
+        User client = userService.findByUserName(username);
 
         List<WalletResponse> wallets = walletService.getClientWalletsById(client.getId());
 
@@ -66,7 +66,7 @@ public class ClientService {
     public ClientResponse create(ClientCreationRequest request){
         log.info("Creating client account");
 
-        if(userRepository.existsByUsername(request.username())){
+        if(userService.existsByUsername(request.username())){
             log.warn("Client account creation rejected: username already exists");
             throw new UsernameAlreadyExistsException(request.username());
         }

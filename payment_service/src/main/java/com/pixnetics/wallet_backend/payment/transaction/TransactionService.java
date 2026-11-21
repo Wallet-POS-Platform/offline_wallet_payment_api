@@ -1,7 +1,7 @@
 package com.pixnetics.wallet_backend.payment.transaction;
 
-import com.pixnetics.wallet_backend.enums.TransactionStatus;
-import com.pixnetics.wallet_backend.enums.TransactionType;
+import com.pixnetics.wallet_backend.common.enums.TransactionStatus;
+import com.pixnetics.wallet_backend.common.enums.TransactionType;
 import com.pixnetics.wallet_backend.payment.ledger.Ledger;
 import com.pixnetics.wallet_backend.payment.ledger.LedgerRepository;
 import com.pixnetics.wallet_backend.payment.transaction.exception.InsufficientFundsException;

@@ -1,6 +1,6 @@
 package com.pixnetics.wallet_backend.payment.wallet.exception;
 
-import com.pixnetics.wallet_backend.enums.WalletType;
+import com.pixnetics.wallet_backend.common.enums.WalletType;
 
 import java.util.UUID;
 

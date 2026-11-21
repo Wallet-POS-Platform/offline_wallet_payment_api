@@ -1,4 +1,4 @@
-package com.pixnetics.wallet_backend.security;
+package com.pixnetics.wallet_backend.common.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

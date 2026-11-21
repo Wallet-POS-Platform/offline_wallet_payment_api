@@ -1,6 +1,6 @@
 package com.pixnetics.wallet_backend.payment.transaction;
 
-import com.pixnetics.wallet_backend.enums.TransactionStatus;
+import com.pixnetics.wallet_backend.common.enums.TransactionStatus;
 import com.pixnetics.wallet_backend.payment.user.User;
 import jakarta.persistence.*;
 import lombok.Data;

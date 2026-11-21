@@ -1,6 +1,6 @@
-package com.pixnetics.wallet_backend.payment;
+package com.pixnetics.wallet_backend.common;
 
-import com.pixnetics.wallet_backend.payment.wallet.ClearingWalletService;
+import com.pixnetics.wallet_backend.payment.wallet.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -11,12 +11,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ClearingWalletInitializer implements ApplicationRunner {
+public class DatabaseInitializer implements ApplicationRunner {
 
-    private final ClearingWalletService clearingWalletService;
+    private final WalletService walletService;
 
     @Override
     public void run(@NonNull ApplicationArguments args) {
-        clearingWalletService.initialize();
+        walletService.initializeClearingWallet();
     }
 }

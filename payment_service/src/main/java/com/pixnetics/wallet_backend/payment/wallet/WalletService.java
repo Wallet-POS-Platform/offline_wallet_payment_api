@@ -1,16 +1,15 @@
 package com.pixnetics.wallet_backend.payment.wallet;
 
-import com.pixnetics.wallet_backend.enums.UserRole;
-import com.pixnetics.wallet_backend.enums.WalletType;
+import com.pixnetics.wallet_backend.common.enums.UserRole;
+import com.pixnetics.wallet_backend.common.enums.WalletType;
 import com.pixnetics.wallet_backend.payment.client.dto.TopUpRequest;
 import com.pixnetics.wallet_backend.payment.client.dto.WithdrawRequest;
-import com.pixnetics.wallet_backend.payment.client.exception.ClientNotFoundException;
 import com.pixnetics.wallet_backend.payment.transaction.TransactionResponse;
 import com.pixnetics.wallet_backend.payment.transaction.TransactionService;
 import com.pixnetics.wallet_backend.payment.transaction.exception.CurrencyMismatchException;
 import com.pixnetics.wallet_backend.payment.transaction.exception.TransactionException;
 import com.pixnetics.wallet_backend.payment.user.User;
-import com.pixnetics.wallet_backend.payment.user.UserRepository;
+import com.pixnetics.wallet_backend.payment.user.UserService;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletCreationRequest;
 import com.pixnetics.wallet_backend.payment.wallet.dto.WalletResponse;
 import com.pixnetics.wallet_backend.payment.wallet.exception.WalletAccessDeniedException;
@@ -30,13 +29,37 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class WalletService {
-    private final WalletRepository walletRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final TransactionService transactionService;
+
+    private final WalletRepository walletRepository;
+
+    @Transactional
+    public void initializeClearingWallet() {
+
+        if (walletRepository.findClearingWallet().isPresent()) {
+            log.info("Clearing wallet already exists. Skipping initialization.");
+            return;
+        }
+
+        User systemUser = userService.getSystemUser();
+
+        Wallet clearingWallet = new Wallet();
+        clearingWallet.setUser(systemUser);
+        clearingWallet.setWalletType(WalletType.CLEARING);
+        clearingWallet.setName("Platform Clearing Wallet");
+        clearingWallet.setCurrency("EUR");
+        clearingWallet.setBalance(new BigDecimal("1000000.00"));
+        clearingWallet.setActive(true);
+
+        walletRepository.save(clearingWallet);
+
+        log.info("Platform clearing wallet initialized successfully.");
+    }
 
     @Transactional
     public WalletResponse createWalletForClient(UUID userId, WalletCreationRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ClientNotFoundException(userId));
+        User user = userService.findById(userId);
 
         if(!UserRole.CLIENT.equals(user.getRole())){
             throw new WalletCreationException("Wallet Creation not allowed for: " + user.getRole());
